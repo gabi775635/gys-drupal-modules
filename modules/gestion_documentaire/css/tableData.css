@@ -13,23 +13,22 @@ table {
   top: calc(50% - 60px) !important ;
   left: calc(50% - 60px) !important ;
   z-index: 400 !important ;
-  width: 2vw !important ;
+  width: 120px !important ;
+  height: 120px !important ;
   border: 16px solid #f3f3f3 !important ;
   border-radius: 50% !important ;
   border-top: 16px solid #3498db !important ;
-  width: 120px !important ;
-  height: 120px !important ;
   -webkit-animation: spin 2s linear infinite !important ; /* Safari */
   animation: spin 2s linear infinite !important ;
 }
 /* Safari */
 @-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg) !important ; }
+  0% { -webkit-transform: rotate(0deg) ; }
   100% { -webkit-transform: rotate(360deg) !important ; }
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg) !important ; }
+  0% { transform: rotate(0deg) ; }
   100% { transform: rotate(360deg) !important ; }
 }
 
@@ -40,13 +39,12 @@ table {
 .tableData th:nth-child(1), td:nth-child(1) { width: 10% !important ; }
 .tableData th:nth-child(2), td:nth-child(2) { width: 12.5% !important ; }
 .tableData th:nth-child(3), td:nth-child(3) { width: 15% !important ; }
-.tableData th:nth-child(4), td:nth-child(4) { width: 40ù !important ; }
+.tableData th:nth-child(4), td:nth-child(4) { width: 40% !important ; }
 .tableData th:nth-child(5), td:nth-child(5) { width: 10% !important ; }
 
 td, th {
-  white-space: nowrap !important ;
-  text-overflow: ellipsis !important ;
   white-space: normal !important ;
+  text-overflow: ellipsis !important ;
   padding: 8px !important ;
   border: 1px solid #ddd !important ;
 }

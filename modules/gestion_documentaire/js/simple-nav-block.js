@@ -100,7 +100,7 @@ function renderAddBtn() {
 
   // Vérif permission héritée du parent (calculée côté PHP)
   const settings = (drupalSettings.gestion_documentaire || {}).simple_nav || {};
-  const canAdd = parseInt(settings.is_admin) === 1 || parseInt(settings.can_edit) === 1;
+  const canAdd = Number.parseInt(settings.is_admin) === 1 || Number.parseInt(settings.can_edit) === 1;
   if (!canAdd) return;
 
   const currentCrumb = breadcrumbStackAction[breadcrumbStackAction.length - 1];
@@ -143,7 +143,7 @@ function renderAddBtn() {
               a.dataset.idx = idx;
               a.addEventListener('click', function (e) {
                 e.preventDefault();
-                const targetIdx = parseInt(this.dataset.idx);
+                const targetIdx = Number.parseInt(this.dataset.idx);
                 breadcrumbStack = breadcrumbStack.slice(0, targetIdx + 1);
                 currentIdChar   = breadcrumbStack[targetIdx].id_char;
                 currentPage     = 0;
@@ -335,9 +335,9 @@ function renderAddBtn() {
               : getFileIcon(row.file_ext);
 
             const idChar    = row.id_char_version || row.id_char;
-            const canEdit   = parseInt(row.can_edit)   === 1;
-            const canDelete = parseInt(row.can_delete) === 1;
-            const canAdd    = parseInt(row.can_edit)   === 1;
+            const canEdit   = Number.parseInt(row.can_edit)   === 1;
+            const canDelete = Number.parseInt(row.can_delete) === 1;
+            const canAdd    = Number.parseInt(row.can_edit)   === 1;
             
             const item = document.createElement('div');
             item.className = 'sv-item';
@@ -452,8 +452,8 @@ function renderAddBtn() {
         }
         
         function formatSize(bytes) {
-          bytes = parseInt(bytes);
-          if (!bytes || isNaN(bytes)) return '—';
+          bytes = Number.parseInt(bytes);
+          if (!bytes || Number.isNaN(bytes)) return '—';
           if (bytes < 1024)        return bytes + ' ' + Drupal.t('B');
           if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' ' + Drupal.t('KB');
           return (bytes / (1024 * 1024)).toFixed(1) + ' ' + Drupal.t('MB');
@@ -491,7 +491,7 @@ function renderAddBtn() {
         function formatDate(str) {
           if (!str || str === '1970-01-01 01:00:00') return '—';
           const d = new Date(str.replace(' ', 'T'));
-          if (isNaN(d)) return str;
+          if (Number.isNaN(d)) return str;
           return d.toLocaleDateString() + ' '
             + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }

@@ -593,7 +593,7 @@
     container.querySelectorAll('.gd-pagination-link[data-page]').forEach(btn => {
       btn.addEventListener('click', () => {
         if (btn.disabled) return;
-        const p = parseInt(btn.dataset.page, 10);
+        const p = Number.parseInt(btn.dataset.page, 10);
         if (p >= 1 && p <= totalPages) onPage(p);
       });
     });
@@ -601,7 +601,7 @@
     const jumpInput = container.querySelector('.gd-pagination-jump input');
     if (jumpInput) {
       jumpInput.addEventListener('change', () => {
-        const p = Math.min(totalPages, Math.max(1, parseInt(jumpInput.value, 10) || 1));
+        const p = Math.min(totalPages, Math.max(1, Number.parseInt(jumpInput.value, 10) || 1));
         onPage(p);
       });
     }

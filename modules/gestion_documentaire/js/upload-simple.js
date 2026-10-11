@@ -35,7 +35,7 @@
         const ext      = (filename.match(/\.[^.]+$/) || [''])[0];
         const stem     = filename.slice(0, filename.length - ext.length);
         const stripped = stem.replace(/_\d{1,2}$/, '').replace(/_+$/, '');
-        const structured = /(__[a-z]{2}|__\d+|_[a-z]{2}$|_\d{2,6}$)/i.test(stripped);
+        const structured = /(?:__[a-z]{2}|__\d+|_(?:[a-z]{2}|\d{2,6})$)/i.test(stripped);
         return (structured ? stripped : stem) + ext;
       }
 
@@ -49,7 +49,7 @@
         let stem   = fn.slice(0, fn.length - ext.length);
 
         const stripped = stem.replace(/_\d{1,2}$/, '').replace(/_+$/, '');
-        if (/(__[a-z]{2}|__\d+|_[a-z]{2}$|_\d{2,6}$)/i.test(stripped)) stem = stripped;
+        if (/(?:__[a-z]{2}|__\d+|_(?:[a-z]{2}|\d{2,6})$)/i.test(stripped)) stem = stripped;
 
         const knownTypesLower = knownTypes.map(t => t.toLowerCase().trim());
 

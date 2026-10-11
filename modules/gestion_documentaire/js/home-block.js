@@ -54,8 +54,8 @@
         
         
         function formatSize(bytes) {
-          bytes = parseInt(bytes);
-          if (!bytes || isNaN(bytes)) return '—';
+          bytes = Number.parseInt(bytes);
+          if (!bytes || Number.isNaN(bytes)) return '—';
           if (bytes < 1024)        return bytes + ' o';
           if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' Ko';
           return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
@@ -174,7 +174,7 @@
         function formatDate(str) {
           if (!str || str === '1970-01-01 01:00:00') return '—';
           const d = new Date(str.replace(' ', 'T'));
-          if (isNaN(d)) return str;
+          if (Number.isNaN(d)) return str;
           return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
         

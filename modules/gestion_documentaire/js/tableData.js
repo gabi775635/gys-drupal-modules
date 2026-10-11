@@ -278,7 +278,7 @@
         html += '</ul>';
         resultsDiv.innerHTML = html;
         resultsDiv.querySelectorAll('.selectCategoryBtn').forEach(btn => {
-          btn.addEventListener('click', function() { addCategoryRefs(this.getAttribute('data-code')); });
+          btn.addEventListener('click', function() { void addCategoryRefs(this.getAttribute('data-code')); });
         });
       }
       
@@ -360,8 +360,8 @@
               var fileField = document.querySelector('.js-form-type-managed-file');
               if (!fileField) return;
               fileField.querySelectorAll('input[type="hidden"]').forEach(function(input) {
-                var val = parseInt(input.value);
-                if (val && val > 0 && input.name && input.name.indexOf('file') !== -1) { checkFileHashOnUpload(val); }
+                var val = Number.parseInt(input.value);
+                if (val && val > 0 && input.name && input.name.indexOf('file') !== -1) { void checkFileHashOnUpload(val); }
               });
             }, 500);
           }
@@ -650,7 +650,7 @@
           var fileField = document.querySelector('.js-form-type-managed-file');
           if (fileField) {
             fileField.querySelectorAll('input[type="hidden"]').forEach(function(input) {
-              var val = parseInt(input.value);
+              var val = Number.parseInt(input.value);
               if (val && val > 0 && input.name && input.name.indexOf('file') !== -1) { fid = val; }
             });
           }
@@ -718,7 +718,7 @@
           gdInitLoader();
           loadInitialData();
           
-          $(once('addValueRefEvent', addValueRef, context)).on('click', function(e) { e.preventDefault(); addEntryRef(); });
+          $(once('addValueRefEvent', addValueRef, context)).on('click', function(e) { e.preventDefault(); void addEntryRef(); });
           $(once('searchCategoryEvent', searchBtn, context)).on('click', function(e) { e.preventDefault(); openCategorySearchModal(); });
           $(once('searchCategoryEvent', searchBtn, context)).on('keypress', function(e) { e.preventDefault(); openCategorySearchModal(); });
           inputDataRef.addEventListener('keypress', function(e) {
