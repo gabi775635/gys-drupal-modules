@@ -2,7 +2,7 @@
   'use strict';
 
   Drupal.behaviors.simpleUploadValidator = {
-    attach: function (context) {
+    attach: function (context, settings) {
       console.log('[UPLOAD] attach() called | already init:', !!window._uploadValidatorInit);
 
       if (window._uploadValidatorInit) return;

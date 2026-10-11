@@ -1,7 +1,7 @@
 (function (Drupal, drupalSettings, once) {
   
   Drupal.behaviors.simpleNavBlock = {
-    attach: function (context) {
+    attach: function (context, settings) {
       once('simpleNavInit', '#svContainer', context).forEach(function (container) {
 
         function getFileIcon(ext) {
