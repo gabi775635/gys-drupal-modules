@@ -5,8 +5,9 @@ namespace Drupal\gestion_documentaire\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\Core\Database\Database;
+use Drupal\Core\Controller\ControllerBase;
 
-class ProduitController {
+class ProduitController extends ControllerBase {
 
   public function getDocumentProduit(Request $request, $ref = NULL, $type = NULL) {
     $account = \Drupal::currentUser();

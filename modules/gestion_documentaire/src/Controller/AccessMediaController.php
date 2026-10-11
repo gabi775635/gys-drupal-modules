@@ -6,11 +6,12 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Drupal\Core\Controller\ControllerBase;
 
 /**
-* Contrôleur d'accès pour les ressources du module Gestion Documentaire.
-*/
-class AccessMediaController
+ * Contrôleur d'accès pour les ressources du module Gestion Documentaire.
+ */
+class AccessMediaController extends ControllerBase
 {
   
   /**

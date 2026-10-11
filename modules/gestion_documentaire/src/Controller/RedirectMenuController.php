@@ -7,6 +7,7 @@ use Drupal\Core\Database\Database;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Component\Utility\Xss;
 
 class RedirectMenuController extends ControllerBase
 {
@@ -154,7 +155,7 @@ class RedirectMenuController extends ControllerBase
     }
 
     return [
-      '#markup' => '<p>' . $this->t('Aucune taxonomy accessible pour vos rôles.') . '</p>',
+      '#markup' => Xss::filterAdmin('<p>' . $this->t('Aucune taxonomy accessible pour vos rôles.') . '</p>'),
     ];
   }
 }

@@ -13,6 +13,7 @@ use Drupal\file\Entity\File;
 use Drupal\Core\Url;
 use Drupal\gestion_documentaire\Controller\RecentChangesController;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Component\Utility\Xss;
 
 class UpdateTaxonomyForm extends FormBase {
 
@@ -61,7 +62,7 @@ class UpdateTaxonomyForm extends FormBase {
 
     $form['titre'] = [
       '#type' => 'markup',
-      '#markup' => '<h2> 📂 ' . $this->t('Modify folder') . ' : '. $ressource['name'] . '</h2>',
+      '#markup' => Xss::filterAdmin('<h2> 📂 ' . $this->t('Modify folder') . ' : ' . Xss::filter($ressource['name']) . '</h2>'),
     ];
 
     // Permissions
@@ -96,10 +97,10 @@ class UpdateTaxonomyForm extends FormBase {
 
     $form['home_page'] = [
       '#type' => 'markup',
-      '#markup' => \Drupal\Core\Link::fromTextAndUrl(
+      '#markup' => Xss::filterAdmin(\Drupal\Core\Link::fromTextAndUrl(
         $this->t('Leave form'),
         Url::fromUserInput($path)
-      )->toString(),
+      )->toString()),
     ];
 
     // --- Section Traductions ---
@@ -216,7 +217,7 @@ class UpdateTaxonomyForm extends FormBase {
           // Valeur inherit actuelle (défaut 1 si colonne absente)
           $current_inherit = isset($role['inherit']) ? (int) $role['inherit'] : 1;
 
-          $form['roles_table'][$role_id]['role_libelle'] = ['#markup' => $role['role_libelle']];
+          $form['roles_table'][$role_id]['role_libelle'] = ['#markup' => Xss::filter($role['role_libelle'])];
 
           $form['roles_table'][$role_id]['can_view'] = [
             '#type' => 'checkbox',
@@ -268,7 +269,7 @@ class UpdateTaxonomyForm extends FormBase {
 
     $form['title'] = [
       '#type' => 'markup',
-      '#markup' => '<br><br><h2>' . $this->t('Resource modification history') . '</h2><br>',
+      '#markup' => Xss::filterAdmin('<br><br><h2>' . $this->t('Resource modification history') . '</h2><br>'),
     ];
 
     $form['recent_changes'] = [

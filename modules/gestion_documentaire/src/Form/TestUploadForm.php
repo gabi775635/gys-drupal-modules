@@ -10,6 +10,7 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\gestion_documentaire\Controller\ActionRessourceController;
 use Drupal\gestion_documentaire\Controller\AccessMediaController;
+use Drupal\Component\Utility\Xss;
 
 class TestUploadForm extends FormBase {
 
@@ -129,7 +130,7 @@ class TestUploadForm extends FormBase {
 
     // ── Guide de nommage ──────────────────────────────────────────────────
     $form['fieldset']['guide'] = [
-      '#markup' =>
+      '#markup' => Xss::filterAdmin(
         '<div class="format-guide">' .
           '<div class="fg-block">' .
             '<div class="fg-block-title">' . $this->t('Filename format') . '</div>' .
@@ -153,7 +154,8 @@ class TestUploadForm extends FormBase {
               $this->t('Alias '). $this->t(': jp→ja · cz→cs · cn→zh · en→uk') .
             '</div>' .
           '</div>' .
-        '</div>',
+        '</div>'
+      ),
     ];
 
     // ── parent_taxonomy_raw : sera rempli par JS avec le tid trouvé dans la BDD ──
@@ -175,7 +177,7 @@ class TestUploadForm extends FormBase {
 
     // ── Résultats JS ──────────────────────────────────────────────────────
     $form['fieldset']['validation_results'] = [
-      '#markup' => '<div id="validation-results" class="validation-results"></div>',
+      '#markup' => Xss::filterAdmin('<div id="validation-results" class="validation-results"></div>'),
     ];
 
     // ── Champs de fallback (affichage uniquement, valeurs injectées par JS) ─
@@ -185,7 +187,7 @@ class TestUploadForm extends FormBase {
     ];
 
     $form['fieldset']['free_name_fields']['fallback_title'] = [
-      '#markup' => '<div class="fallback-title">Valeurs pour les fichiers non reconnus</div>',
+      '#markup' => Xss::filterAdmin('<div class="fallback-title">Valeurs pour les fichiers non reconnus</div>'),
     ];
 
     $form['fieldset']['free_name_fields']['manual_type'] = [
@@ -220,12 +222,12 @@ class TestUploadForm extends FormBase {
 
     // ── Progress ──────────────────────────────────────────────────────────
     $form['fieldset']['progress'] = [
-      '#markup' => '
+      '#markup' => Xss::filterAdmin('
         <div id="progress-wrapper" class="progress-wrapper">
           <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
           <div id="progress-log" class="progress-log"></div>
         </div>
-      ',
+      '),
     ];
 
     // ── Submit ────────────────────────────────────────────────────────────

@@ -13,6 +13,7 @@ use Drupal\Core\Url;
 use Drupal\gestion_documentaire\Form\RefLangForm;
 use Drupal\gestion_documentaire\Controller\GetDataController;
 use Drupal\gestion_documentaire\Form\PublishMediaForm;
+use Drupal\Component\Utility\Xss;
 
 
 class AddMediaForm extends FormBase
@@ -28,7 +29,7 @@ class AddMediaForm extends FormBase
 
     $form['titre'] = [
       '#type' => 'markup',
-      '#markup' => '<h2> 📄 ' . $this->t('Add media') . '</h2>',
+      '#markup' => Xss::filterAdmin('<h2> 📄 ' . $this->t('Add media') . '</h2>'),
     ];
 
     $parent_taxonomy = $form_state->getValue('parent_taxonomy') ?? $id_char_version_duplicate;
@@ -87,12 +88,12 @@ class AddMediaForm extends FormBase
 
     $form['home_page'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="form-item">' .
+      '#markup' => Xss::filterAdmin('<div class="form-item">' .
         \Drupal\Core\Link::fromTextAndUrl(
           $this->t('Leave form'),
           Url::fromUserInput('/gestion_documentaire/dossier/' . $ressource['type'])
         )->toString() .
-        '</div>',
+        '</div>'),
     ];
 
     $ref  = $form_state->getValue('ref_js_data') ?? ($ressource['reference'] ?? '');

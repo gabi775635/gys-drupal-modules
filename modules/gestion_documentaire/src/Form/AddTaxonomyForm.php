@@ -8,6 +8,7 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\Core\Url;
 use Drupal\Core\Database\Database;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Component\Utility\Xss;
 
 class AddTaxonomyForm extends FormBase {
 
@@ -20,15 +21,15 @@ class AddTaxonomyForm extends FormBase {
 
     $form['titre'] = [
       '#type' => 'markup',
-      '#markup' => '<h2>' . '📂 '. $this->t('Create folder') . '</h2>',
+      '#markup' => Xss::filterAdmin('<h2>' . '📂 ' . $this->t('Create folder') . '</h2>'),
     ];
 
     $form['home_page'] = [
       '#type' => 'markup',
-      '#markup' => \Drupal\Core\Link::fromTextAndUrl(
+      '#markup' => Xss::filterAdmin(\Drupal\Core\Link::fromTextAndUrl(
         $this->t('Leave form'),
         Url::fromUserInput('/gestion_documentaire/dossier/' . $id_char_version)
-      )->toString(),
+      )->toString()),
     ];
 
     $form['translations_section'] = [

@@ -8,6 +8,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Drupal\Component\Utility\Xss;
 
 /**
  * Contrôleur unifié pour la gestion des ressources (dossiers et documents).
@@ -176,15 +177,6 @@ class RessourceController extends ControllerBase
             }
           }
 
-          // $this->getLogger('gestion_documentaire')->notice(
-          //   '[findEntityByName] ✅ PASS2 match natif | TID=@id | lang=@lang_found | nom_lang_courante="@nom_current"',
-          //   [
-          //     '@id'          => $entity->id(),
-          //     '@lang_found'  => $langcode,
-          //     '@nom_current' => $name_in_current_lang ?? '(pas de trad native courante)',
-          //   ]
-          // );
-
           return [
             'entity'               => $entity,
             'matched_langcode'     => $langcode,
@@ -227,43 +219,15 @@ class RessourceController extends ControllerBase
         $nom_correct  = $result['name_in_current_lang'];
         $redirect_url = $this->buildPublicUrl($nom_correct, $resource_type);
 
-        // $this->getLogger('gestion_documentaire')->notice(
-        //   '[resolveRessource] 🔄 REDIRECT: "@nom_original" (@lang_found) → "@nom_correct" (@lang_current) | url=@url',
-        //   [
-        //     '@nom_original' => $nom,
-        //     '@lang_found'   => $result['matched_langcode'],
-        //     '@nom_correct'  => $nom_correct,
-        //     '@lang_current' => $current_langcode,
-        //     '@url'          => $redirect_url,
-        //   ]
-        // );
-
         return new RedirectResponse($redirect_url, 302);
       }
       
       // Pas de traduction native dans la langue courante → on garde le nom fourni
-      // $this->getLogger('gestion_documentaire')->notice(
-      //   '[resolveRessource] ℹ️ Pas de trad en @lang_current pour "@nom", conservation du nom en @lang_found',
-      //   [
-      //     '@nom'          => $nom,
-      //     '@lang_current' => $current_langcode,
-      //     '@lang_found'   => $result['matched_langcode'],
-      //   ]
-      // );
-      // On laisse passer → la sous-requête directe utilisera l'ID
     }
 
     // Sous-requête directe (média, ou taxo déjà dans la bonne langue, ou pas de redirect)
     $id              = $result['entity']->id();
     $id_char_version = $id_prefix . $id;
-
-    // $this->getLogger('gestion_documentaire')->notice(
-    //   '[resolveRessource] ➡️ Sous-requête directe | ID=@id | path=@pattern',
-    //   [
-    //     '@id'      => $id_char_version,
-    //     '@pattern' => $path_pattern,
-    //   ]
-    // );
 
     $path = sprintf($path_pattern, $id_char_version);
     return $this->createSubRequest($path);
@@ -311,29 +275,15 @@ class RessourceController extends ControllerBase
     $id              = $result['entity']->id();
     $id_char_version = $id_prefix . $id;
 
-    if ($result['matched_langcode'] !== $current_langcode) {
-      if (!empty($result['name_in_current_lang'])) {
-        // $this->getLogger('gestion_documentaire')->notice(
-        //   '[resolveAndRedirect] 🔄 Nom corrigé disponible: "@nom_original" (@lang_found) → "@nom_correct" (@lang_current) | action=@action',
-        //   [
-        //     '@nom_original' => $nom,
-        //     '@lang_found'   => $result['matched_langcode'],
-        //     '@nom_correct'  => $result['name_in_current_lang'],
-        //     '@lang_current' => $current_langcode,
-        //     '@action'       => $action,
-        //   ]
-        // );
-      } else {
-        // $this->getLogger('gestion_documentaire')->notice(
-        //   '[resolveAndRedirect] ℹ️ Pas de trad en @lang_current pour "@nom", conservation du nom en @lang_found | action=@action',
-        //   [
-        //     '@nom'          => $nom,
-        //     '@lang_current' => $current_langcode,
-        //     '@lang_found'   => $result['matched_langcode'],
-        //     '@action'       => $action,
-        //   ]
-        // );
-      }
+    if ($result['matched_langcode'] !== $current_langcode && empty($result['name_in_current_lang'])) {
+      $this->getLogger('gestion_documentaire')->notice(
+        '[resolveAndRedirect] No translation in @lang_current for "@nom", using name from @lang_found.',
+        [
+          '@nom'          => $nom,
+          '@lang_current' => $current_langcode,
+          '@lang_found'   => $result['matched_langcode'],
+        ]
+      );
     }
 
     $path = $this->getPathForAction($action, $id_char_version);
@@ -413,6 +363,6 @@ class RessourceController extends ControllerBase
       $output .= '</div>';
     }
 
-    return ['#markup' => $output];
+    return ['#markup' => Xss::filterAdmin($output)];
   }
 }

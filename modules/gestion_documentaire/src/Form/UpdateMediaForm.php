@@ -21,6 +21,7 @@ use Drupal\gestion_documentaire\Form\PublishMediaForm;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
+use Drupal\Component\Utility\Xss;
 
 
 class UpdateMediaForm extends FormBase
@@ -128,17 +129,17 @@ class UpdateMediaForm extends FormBase
 
     $form['titre'] = [
       '#type' => 'markup',
-      '#markup' => '<h2> 📄 ' . $this->t('Modify document') . " : " . $ressource['name'] . '</h2>',
+      '#markup' => Xss::filterAdmin('<h2> 📄 ' . $this->t('Modify document') . ' : ' . Xss::filter($ressource['name']) . '</h2>'),
     ];
 
     $form['home_page'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="form-item">' .
+      '#markup' => Xss::filterAdmin('<div class="form-item">' .
         \Drupal\Core\Link::fromTextAndUrl(
           $this->t('Leave form'),
           Url::fromRoute('gestion_documentaire.dossier.view', ['nom' => $ressource['parent_taxonomy']])->setAbsolute(FALSE)
         )->toString() .
-        '</div>',
+        '</div>'),
     ];
 
     $account = \Drupal::currentUser();
@@ -425,14 +426,15 @@ class UpdateMediaForm extends FormBase
 
           $form['version_wrapper']['version_notice'] = [
             '#type' => 'markup',
-            '#markup' =>
-            '<div class="messages messages--warning">'
-              . '<strong>⚠️ ' . $this->t('@nb versions exist for this document.', ['@nb' => count($rows)]) . '</strong>'
-              . '<p>' . $this->t("Create new version is not allowed (max 2)")
-              . ' <span style="cursor:help;" title="' . htmlspecialchars($help, ENT_QUOTES) . '">ℹ️</span>'
-              . '</p>'
-              . '<ul>' . $items . '</ul>'
-              . '</div>',
+            '#markup' => Xss::filterAdmin(
+              '<div class="messages messages--warning">'
+                . '<strong>⚠️ ' . $this->t('@nb versions exist for this document.', ['@nb' => count($rows)]) . '</strong>'
+                . '<p>' . $this->t("Create new version is not allowed (max 2)")
+                . ' <span style="cursor:help;" title="' . htmlspecialchars($help, ENT_QUOTES) . '">ℹ️</span>'
+                . '</p>'
+                . '<ul>' . $items . '</ul>'
+                . '</div>'
+            ),
           ];
         }
         if (count($rows) < 2) {
@@ -544,7 +546,7 @@ class UpdateMediaForm extends FormBase
       if (!empty($ressource['type']) && !empty($ressource['name'])) {
         $form['media_link'] = [
           '#type' => 'markup',
-          '#markup' => '<div class="form-item">' .
+          '#markup' => Xss::filterAdmin('<div class="form-item">' .
             \Drupal\Core\Link::fromTextAndUrl(
               $this->t('View current document'),
               Url::fromRoute('gestion_documentaire.redirectRenderRessourcev2', [
@@ -554,7 +556,7 @@ class UpdateMediaForm extends FormBase
                 'action' => '',
               ])->setAbsolute(FALSE)
             )->toString() .
-            '</div>',
+            '</div>'),
         ];
       }
     }
@@ -630,7 +632,7 @@ class UpdateMediaForm extends FormBase
         foreach ($roles_raw as $role_obj) {
           $role = (array) $role_obj;
           $role_id = $role['role_libelle'];
-          $form['roles_table'][$role_id]['role_libelle'] = ['#markup' => $role['role_libelle']];
+          $form['roles_table'][$role_id]['role_libelle'] = ['#markup' => Xss::filter($role['role_libelle'])];
           $form['roles_table'][$role_id]['can_view'] = [
             '#type' => 'checkbox',
             '#default_value' => $role['can_view'],
@@ -747,7 +749,7 @@ class UpdateMediaForm extends FormBase
 
     $form['changesSection']['title'] = [
       '#type' => 'markup',
-      '#markup' => '<br><br><h2>' . $this->t('Resource modification history') . '</h2><br>',
+      '#markup' => Xss::filterAdmin('<br><br><h2>' . $this->t('Resource modification history') . '</h2><br>'),
     ];
 
     $form['changesSection']['recent_changes'] = [
