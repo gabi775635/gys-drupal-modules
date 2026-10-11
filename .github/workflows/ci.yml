@@ -22,6 +22,7 @@ jobs:
 
       - name: Install Drupal Coder
         run: |
+          composer global config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
           composer global require drupal/coder squizlabs/php_codesniffer
           ~/.composer/vendor/bin/phpcs --config-set installed_paths ~/.composer/vendor/drupal/coder/coder_sniffer
 
@@ -33,6 +34,10 @@ jobs:
             --report=checkstyle \
             --report-file=phpcs-report.xml \
             modules/ || true
+          # Crée un rapport vide si aucun fichier scanné
+          if [ ! -f phpcs-report.xml ]; then
+            echo '<?xml version="1.0" encoding="UTF-8"?><checkstyle version="3.5.8"></checkstyle>' > phpcs-report.xml
+          fi
 
       - name: Upload PHPCS report
         uses: actions/upload-artifact@v4
@@ -62,4 +67,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
