@@ -1,0 +1,34 @@
+{# simple_nav_template.html.twig #}
+<div id="svContainer"
+     data-can-edit="{{ can_edit }}"
+     data-can-delete="{{ can_delete }}"
+     data-is-admin="{{ is_admin ? 1 : 0 }}">
+
+  {# Header : breadcrumb + toolbar #}
+  <div class="sv-header">
+    <div id="svBreadcrumb" class="sv-breadcrumb"></div>
+    <div class="sv-toolbar">
+      <input type="text" id="svSearch" placeholder="{{ 'Search'|t }}" class="sv-search">
+      <button id="svLangBtn" class="sv-lang-btn" style="display:none">🌐</button>
+    </div>
+  </div>
+
+  {# Barre extensions #}
+  <div id="svExtBar" class="sv-ext-bar" style="display:none"></div>
+
+  {# Liste des résultats #}
+  <div id="svList" class="sv-list"></div>
+
+  {# Pagination #}
+  <div class="sv-pagination">
+    <span id="svPageCount"></span>
+    <div class="sv-pagination-btns">
+      <button id="svPrev">‹ {{ 'Previous'|t }}</button>
+      <span id="svPageInfo"></span>
+      <button id="svNext">{{ 'Next'|t }} ›</button>
+    </div>
+  </div>
+
+</div>
+
+

@@ -1,0 +1,6 @@
+name: 'Gestion Documentaire'
+type: module
+description: 'Module minimal pour afficher un bloc simple.'
+core_version_requirement: ^9 || ^10 || ^11
+package: Custom
+dependencies: []

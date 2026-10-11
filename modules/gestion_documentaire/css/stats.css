@@ -1,0 +1,505 @@
+/* =========================================================
+   STATS — styles globaux
+   ========================================================= */
+
+   .gd-stats-wrap {
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f5f5;
+    min-height: 100vh;
+}
+
+.gd-stats-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+/* ── Cartes ──────────────────────────────────────────────── */
+
+.gd-stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.gd-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.gd-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.gd-stat-icon  { font-size: 36px; margin-bottom: 10px; }
+.gd-stat-value { font-size: 30px; font-weight: 700; color: #0073e6; margin-bottom: 6px; }
+.gd-stat-label { font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+.gd-stat-sub   { font-size: 11px; color: #aaa; margin-top: 4px; }
+
+.gd-stat-card--success   { border-top: 3px solid #2d9e2d; }
+.gd-stat-card--danger    { border-top: 3px solid #d93025; }
+.gd-stat-card--views     { border-top: 3px solid #0073e6; }
+.gd-stat-card--downloads { border-top: 3px solid #f28e2b; }
+
+/* ── Bandes de section ───────────────────────────────────── */
+
+.gd-section-band {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    border-radius: 8px 8px 0 0;
+    border-left: 3px solid;
+    margin-top: 32px;
+}
+
+.gd-band-icon { font-size: 13px; }
+
+.gd-band--gray   { background: #f1f0ec; color: #4a4a44; border-color: #888780; }
+.gd-band--blue   { background: #eff6ff; color: #1e40af; border-color: #1a56db; }
+.gd-band--teal   { background: #e8f8f8; color: #0f5f61; border-color: #0f7173; }
+.gd-band--red    { background: #fef2f2; color: #991b1b; border-color: #c0392b; }
+.gd-band--amber  { background: #fffbeb; color: #92400e; border-color: #b45309; }
+
+.gd-section--attached {
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    margin-top: 0 !important;
+}
+
+/* ── Graphiques ──────────────────────────────────────────── */
+
+.gd-stats-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.gd-stats-chart {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.gd-stats-chart h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.gd-stats-chart canvas { max-height: 300px; width: 100% !important; }
+
+.gd-chart--fullwidth {
+    background: #f8f8f5;
+    border: 1px solid #e4e4de;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.gd-chart--fullwidth h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e4e4de;
+}
+
+/* ── Sections ────────────────────────────────────────────── */
+
+.gd-stats-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.gd-stats-section + .gd-stats-section { margin-top: 30px; }
+
+.gd-stats-section h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.gd-stats-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    color: #555;
+}
+
+.gd-stats-divider {
+    height: 1px;
+    background: #eee;
+    margin: 24px 0;
+}
+
+/* ── Filtres ─────────────────────────────────────────────── */
+
+.gd-stats-filters { margin-bottom: 0; }
+
+.gd-filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+}
+
+.gd-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.gd-filter-group label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.gd-filter-select,
+.gd-filter-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 160px;
+    background: white;
+}
+
+.gd-filter-select-sm {
+    padding: 7px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+}
+
+.gd-date-range { flex-direction: row; align-items: flex-end; gap: 8px; }
+
+.gd-filter-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+
+/* ── Quick picks ─────────────────────────────────────────── */
+
+.gd-quick-picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.gd-qp {
+    padding: 5px 12px;
+    border: 1px solid #ddd;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background: white;
+    color: #555;
+    transition: all 0.1s;
+    font-family: inherit;
+}
+
+.gd-qp:hover { background: #f0f0f0; border-color: #bbb; }
+
+.gd-qp--active {
+    background: #0073e6;
+    color: white;
+    border-color: #0073e6;
+}
+
+/* ── Boutons ─────────────────────────────────────────────── */
+
+.gd-btn-primary,
+.gd-btn-secondary {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.gd-btn-primary   { background: #0073e6; color: white; }
+.gd-btn-primary:hover { background: #005bb5; }
+
+.gd-btn-secondary { background: #6c757d; color: white; }
+.gd-btn-secondary:hover { background: #545b62; }
+
+.gd-btn-access    { background: #17a2b8; }
+.gd-btn-access:hover { background: #117a8b; }
+
+.gd-btn-excel {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    background: #166534;
+    color: white;
+    transition: background 0.15s;
+}
+
+.gd-btn-excel:hover { background: #0f4a26; }
+
+.gd-btn-excel--red { background: #991b1b; }
+.gd-btn-excel--red:hover { background: #7f1d1d; }
+
+/* ── Toolbar tableau ─────────────────────────────────────── */
+
+.gd-table-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.gd-toolbar-left  { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1; }
+.gd-toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.gd-table-info { font-size: 12px; color: #888; white-space: nowrap; }
+
+.gd-per-page-select {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 12px;
+    background: white;
+}
+
+/* ── Tableaux ────────────────────────────────────────────── */
+
+.gd-table-container { overflow-x: auto; }
+
+.gd-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.gd-stats-table th,
+.gd-stats-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.gd-stats-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
+}
+
+/* ── En-têtes triables ───────────────────────────────────── */
+
+.gd-sortable-table th[data-sort] {
+    cursor: pointer;
+    user-select: none;
+}
+
+.gd-sortable-table th[data-sort]:hover { background: #eef0f2; }
+
+.gd-sort-icon {
+    font-size: 10px;
+    opacity: 0.4;
+    margin-left: 3px;
+}
+
+.gd-sortable-table th.gd-sorted .gd-sort-icon {
+    opacity: 1;
+    color: #0073e6;
+}
+
+.gd-stats-table tr:hover { background: #fafafa; }
+
+.gd-stats-empty,
+.gd-stats-loading { text-align: center; color: #aaa; padding: 30px; font-style: italic; }
+
+.gd-text-center { text-align: center !important; }
+
+.gd-dates-cell {
+    max-width: 180px;
+    font-size: 11px;
+    color: #666;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* ── Ligne anonyme ───────────────────────────────────────── */
+.gd-row-anon td { color: #888; font-style: italic; }
+
+/* ── Badges statut ───────────────────────────────────────── */
+
+.gd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.gd-badge--success  { background: #f0fdf4; color: #166534; }
+.gd-badge--error    { background: #fef2f2; color: #991b1b; }
+.gd-badge--view     { background: #eff6ff; color: #1e40af; }
+.gd-badge--download { background: #fffbeb; color: #92400e; }
+
+.gd-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+.gd-badge-dot--ok  { background: #22c55e; }
+.gd-badge-dot--err { background: #ef4444; }
+
+/* ── Deux colonnes ───────────────────────────────────────── */
+
+.gd-two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+/* ── Langues ─────────────────────────────────────────────── */
+
+.gd-lang-added     { color: #2d9e2d; font-weight: 600; }
+.gd-lang-removed   { color: #d93025; font-weight: 600; text-decoration: line-through; }
+.gd-lang-unchanged { color: inherit; }
+.gd-lang-neutral   { color: #aaa; }
+.gd-langs-cell     { white-space: nowrap; }
+
+/* ── Truncate ────────────────────────────────────────────── */
+
+.gd-truncated {
+    display: inline-block;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+    cursor: help;
+}
+
+/* ── Recherche ───────────────────────────────────────────── */
+
+.gd-search-input {
+    padding: 7px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    min-width: 200px;
+    background: white;
+}
+
+.gd-search-input:focus,
+.gd-filter-select:focus,
+.gd-filter-input:focus,
+.gd-filter-select-sm:focus {
+    outline: 2px solid #0073e6;
+    outline-offset: 1px;
+}
+
+/* ── Pagination ──────────────────────────────────────────── */
+
+.gd-pagination {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.gd-pagination-info { color: #666; font-size: 13px; }
+
+.gd-pagination-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.gd-pagination-controls { display: flex; gap: 4px; flex-wrap: wrap; }
+
+.gd-pagination-link {
+    padding: 5px 11px;
+    border: 1px solid #ddd;
+    color: #0073e6;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    background: white;
+    font-family: inherit;
+    transition: background 0.1s;
+}
+
+.gd-pagination-link:hover  { background: #f0f0f0; }
+.gd-pagination-link.active { background: #0073e6; color: white; border-color: #0073e6; }
+.gd-pagination-link:disabled { opacity: 0.35; cursor: default; }
+.gd-pagination-dots        { padding: 5px 8px; color: #999; }
+
+.gd-pagination-jump {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+}
+
+.gd-pagination-jump input {
+    width: 48px;
+    padding: 4px 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+    .gd-stats-charts-grid { grid-template-columns: 1fr; }
+    .gd-two-columns        { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+    .gd-stats-cards     { grid-template-columns: repeat(2, 1fr); }
+    .gd-filter-form     { flex-direction: column; align-items: stretch; }
+    .gd-date-range      { flex-direction: column; }
+    .gd-filter-actions  { flex-direction: column; }
+    .gd-table-toolbar   { flex-direction: column; align-items: stretch; }
+    .gd-toolbar-right   { justify-content: flex-end; }
+    .gd-quick-picks     { gap: 4px; }
+}

@@ -1,0 +1,715 @@
+# =============================================================================
+# ROUTES PRINCIPALES
+# =============================================================================
+
+gestion_documentaire.test_upload:
+  path: '/gestion_documentaire/upload'
+  defaults:
+    _form: '\Drupal\gestion_documentaire\Form\TestUploadForm'
+    _title: 'Test Upload Multi-Fichiers'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.taxonomy_hierarchy:
+  path: '/gestion_documentaire/redirect/hierarchy'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RedirectMenuController::hierarchyList'
+    _title: 'Taxonomies hiérarchiques'
+  requirements:
+    _role: 'authenticated'
+
+# =============================================================================
+# ROUTES API / RECHERCHE
+# =============================================================================
+
+gestion_documentaire.get_types:
+  path: '/gestion_documentaire/types/{ref}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\ProduitController::getTypesByRef'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.search:
+  path: '/gestion_documentaire/search'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\SearchController::search'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.produit:
+  path: '/gestion_documentaire/produit/{ref}/{type}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\ProduitController::getDocumentProduit'
+    _title: "Récupération d'un type de document pour un produit"
+  requirements:
+    _permission: "access content"
+  options:
+    parameters:
+      ref:
+        type: string
+      type:
+        type: string
+
+# =============================================================================
+# ROUTES DE DONNÉES
+# =============================================================================
+
+gestion_documentaire.getData:
+  path: '/gestion_documentaire/tableData/getData'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\GetDataController::getData'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+  methods: [GET, POST]
+
+gestion_documentaire.getInformationProduct:
+  path: '/gestion_documentaire/getInformationProduct'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\GetDataController::getInformationProduct'
+    _format: 'json'
+  methods: [GET, POST]
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.searchCategories:
+  path: '/gestion_documentaire/searchCategories'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\GetDataController::searchCategories'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.checkFileHashDuplicate:
+  path: '/gestion_documentaire/checkFileHashDuplicate'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\GetDataController::checkFileHashDuplicate'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.checkDocumentExistence:
+  path: '/gestion_documentaire/checkDocumentExistence'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\GetDataController::checkDocumentExistence'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.validateReferenceNumbers:
+  path: '/gestion_documentaire/validateReferenceNumbers'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\GetDataController::validateReferenceNumbers'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.validateLanguages:
+  path: '/gestion_documentaire/validateLanguages'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\GetDataController::validateLanguages'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.checkMediaNameDuplicate:
+  path: '/gestion_documentaire/checkMediaNameDuplicate'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\GetDataController::checkMediaNameDuplicate'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.getMediaVersions:
+  path: '/gestion_documentaire/getMediaVersions'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\GetDataController::getMediaVersions'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+  methods: [GET]
+
+# =============================================================================
+# ROUTES INTERNES (utilisées par les sous-requêtes du RessourceController)
+# =============================================================================
+
+gestion_documentaire.accueil:
+  path: '/gestion_documentaire/taxonomy/{id_char_version}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\HomePageController::content'
+    _title: 'Gestion Documentaire'
+  requirements:
+    _permission: "access content"
+  options:
+    parameters:
+      id_char_version:
+        type: string
+
+gestion_documentaire.test-access:
+  path: '/gestion_documentaire/testAccess/{id_char_version}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\AccessMediaController::testAccess'
+    _title: 'Gestion Documentaire'
+  requirements:
+    _permission: "access content"
+  options:
+    parameters:
+      id_char_version:
+        type: string
+
+
+gestion_documentaire.renderRessource_legacy:
+  path: '/gestion_documentaire/renderRessource/{id_char_version}/{ref}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RenderRessourceController::content'
+    _title: 'Document'
+    ref: ~
+  requirements:
+    _permission: "access content"
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::access'
+    id_char_version: '[^/]+'
+    ref: '[^/]+'
+  options:
+    parameters:
+      id_char_version:
+        type: string
+      ref:
+        type: string
+
+# =============================================================================
+# ROUTES DOCUMENT — téléchargement EN PREMIER pour éviter les conflits
+# =============================================================================
+
+# Téléchargement forcé — DOIT être avant renderRessource et redirectRenderRessource
+gestion_documentaire.downloadRessource:
+  path: '/document/telecharger/{id_char_version}/{ref}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RenderRessourceController::download'
+    _title: 'Téléchargement'
+    ref: ~
+  requirements:
+    _permission: "access content"
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::access'
+    id_char_version: '[^/]+'
+    ref: '[^/]+'
+  options:
+    parameters:
+      id_char_version:
+        type: string
+      ref:
+        type: string
+
+gestion_documentaire.media_thumbnail:
+  path: '/thumbnail/{mid}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RenderRessourceController::mediaThumbnail'
+  requirements:
+    _permission: "access content"
+    mid: '\d+'
+
+
+gestion_documentaire.ref_thumbnail:
+  path: '/thumbnail/{reference}/{lang}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RenderRessourceController::mediaThumbnailByReference'
+  requirements:
+    _permission: "access content"
+    reference: '[^/]+'
+    lang: '[a-z]{2}'
+
+
+gestion_documentaire.renderByMid:
+  path: '/document/{id_char_version}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RenderRessourceController::renderByMid'
+    _title: 'Document'
+  requirements:
+    _permission: "access content"
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::access'
+    id_char_version: '(?!telecharger)(?!miniature)[^/]+'
+  options:
+    parameters:
+      id_char_version:
+        type: string
+
+
+# Affichage/rendu — exclut "telecharger" du paramètre id_char_version
+gestion_documentaire.renderRessource:
+  path: '/document/{id_char_version}/{ref}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RenderRessourceController::content'
+    _title: 'Document'
+    ref: ~
+  requirements:
+    _permission: "access content"
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::access'
+    id_char_version: '(?!telecharger)(?!miniature)[^/]+'
+    ref: '[^/]+'
+  options:
+    parameters:
+      id_char_version:
+        type: string
+      ref:
+        type: string
+
+gestion_documentaire.renderRessourcev2:
+  path: '/gestion_documentaire/document/{id_char_version}/{ref}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RenderRessourceController::content'
+    _title: 'Document'
+    ref: ~
+  requirements:
+    _permission: "access content"
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::access'
+    id_char_version: '(?!telecharger)(?!miniature)[^/]+'
+    ref: '[^/]+'
+  options:
+    parameters:
+      id_char_version:
+        type: string
+      ref:
+        type: string
+
+# =============================================================================
+# ROUTES INTERNES ACTIONS
+# =============================================================================
+
+gestion_documentaire.update_taxonomy:
+  path: '/gestion_documentaire/update/taxonomy/{id_char_version}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\ActionRessourceController::updateTaxonomy'
+    _title: 'Modifier le dossier'
+  requirements:
+    _permission: "access content"
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::update'
+  options:
+    parameters:
+      id_char_version:
+        type: string
+
+gestion_documentaire.update_media:
+  path: '/gestion_documentaire/update/media/{id_char_version}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\ActionRessourceController::updateMedia'
+    _title: 'Modifier le document'
+  requirements:
+    _permission: "access content"
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::update'
+  options:
+    parameters:
+      id_char_version:
+        type: string
+
+
+
+
+
+gestion_documentaire.delete_taxonomy:
+  path: '/gestion_documentaire/delete/taxonomy/{id_char_version}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\ActionRessourceController::deleteTaxonomy'
+    _title: 'Supprimer le dossier'
+  requirements:
+    _permission: "access content"
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::delete'
+  options:
+    parameters:
+      id_char_version:
+        type: string
+
+gestion_documentaire.delete_media:
+  path: '/gestion_documentaire/delete/media/{id_char_version}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\ActionRessourceController::deleteMedia'
+    _title: 'Supprimer le document'
+  requirements:
+    _permission: "access content"
+  options:
+    parameters:
+      id_char_version:
+        type: string
+
+gestion_documentaire.add_taxonomy:
+  path: '/gestion_documentaire/add/taxonomy/{id_char_version}'
+  defaults:
+    _form: '\Drupal\gestion_documentaire\Form\AddTaxonomyForm'
+    _title: 'Ajouter un sous-dossier'
+  requirements:
+    _permission: "access content"
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::access'
+  options:
+    parameters:
+      id_char_version:
+        type: string
+
+gestion_documentaire.add_media:
+  path: '/gestion_documentaire/add/media/{id_char_version}/{id_char_version_duplicate?}'
+  defaults:
+    _form: '\Drupal\gestion_documentaire\Form\AddMediaForm'
+    _title: 'Ajouter un document'
+  requirements:
+    _permission: "access content"
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::access'
+  options:
+    parameters:
+      id_char_version:
+        type: string
+      id_char_version_duplicate:
+        type: string
+
+# =============================================================================
+# ROUTES HISTORIQUE / MODIFICATIONS RÉCENTES
+# =============================================================================
+
+gestion_documentaire.recent_changes:
+  path: '/gestion_documentaire/recent-changes/{id_char_version}/{type}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RecentChangesController::getRecentChangesData'
+    _title: 'Modifications récentes'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.all_recent_changes:
+  path: '/gestion_documentaire/history/parent'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\AllRecentChangesController::getAllRecentChangesData'
+    _title: 'Modifications récentes'
+    parent: ''
+  requirements:
+    _permission: "access content"
+
+gestion_documentaire.history:
+  path: '/gestion_documentaire/history/{filename}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\HistoryRenderController::content'
+    _title: 'Historique'
+  requirements:
+    _permission: "access content"
+  options:
+    parameters:
+      filename:
+        type: string
+
+# =============================================================================
+# ROUTES DOSSIERS (TAXONOMY) - URLs lisibles
+# =============================================================================
+
+gestion_documentaire.dossier.view:
+  path: '/gestion_documentaire/dossier/{nom}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RessourceController::view'
+    resource_type: 'taxonomy'
+    _title: 'Dossier'
+  requirements:
+    _role: 'authenticated'
+  options:
+    parameters:
+      nom:
+        type: string
+
+gestion_documentaire.dossier.update:
+  path: '/gestion_documentaire/dossier/modifier/{nom}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RessourceController::resolveAndRedirect'
+    resource_type: 'taxonomy'
+    action: 'update'
+    _title: 'Modifier le dossier'
+  requirements:
+    _role: 'authenticated'
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::update'
+  options:
+    parameters:
+      nom:
+        type: string
+
+gestion_documentaire.dossier.delete:
+  path: '/gestion_documentaire/dossier/supprimer/{nom}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RessourceController::resolveAndRedirect'
+    resource_type: 'taxonomy'
+    action: 'delete'
+    _title: 'Supprimer le dossier'
+  requirements:
+    _role: 'authenticated'
+  options:
+    parameters:
+      nom:
+        type: string
+
+gestion_documentaire.dossier.add:
+  path: '/gestion_documentaire/dossier/ajouter/{nom}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RessourceController::resolveAndRedirect'
+    resource_type: 'taxonomy'
+    action: 'add_taxonomy'
+    _title: 'Ajouter un dossier'
+  requirements:
+    _role: 'authenticated'
+  options:
+    parameters:
+      nom:
+        type: string
+
+# =============================================================================
+# ROUTES DOCUMENTS (MEDIA) - URLs lisibles
+# =============================================================================
+
+gestion_documentaire.document.update:
+  path: '/gestion_documentaire/document/modifier/{nom}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RessourceController::resolveAndRedirect'
+    resource_type: 'media'
+    action: 'update'
+    _title: 'Modifier le document'
+  requirements:
+    _role: 'authenticated'
+    _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::update'
+  options:
+    parameters:
+      nom:
+        type: string
+
+gestion_documentaire.document.delete:
+  path: '/gestion_documentaire/document/supprimer/{nom}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RessourceController::resolveAndRedirect'
+    resource_type: 'media'
+    action: 'delete'
+    _title: 'Supprimer le document'
+  requirements:
+    _role: 'authenticated'
+  options:
+    parameters:
+      nom:
+        type: string
+
+gestion_documentaire.document.add:
+  path: '/gestion_documentaire/dossier/{nom}/ajouter-document'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RessourceController::resolveAndRedirect'
+    resource_type: 'taxonomy'
+    action: 'add_media'
+    _title: 'Ajouter un document'
+  requirements:
+    _role: 'authenticated'
+  options:
+    parameters:
+      nom:
+        type: string
+
+gestion_documentaire.document.duplicate:
+  path: '/gestion_documentaire/document/dupliquer/{nom}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RessourceController::resolveAndRedirect'
+    resource_type: 'media'
+    action: 'duplicate'
+    _title: 'Dupliquer le document'
+  requirements:
+    _role: 'authenticated'
+  options:
+    parameters:
+      nom:
+        type: string
+
+# =============================================================================
+# ROUTES REDIRECTION LEGACY
+# =============================================================================
+
+gestion_documentaire.redirectRenderRessource:
+  path: '/gestion_documentaire/redirectRenderRessource/{type}/{name}/{lang}/{action}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RedirectRenderRessourceController::content'
+    _title: 'Redirection ressource'
+    action: null
+  requirements:
+    _permission: "access content"
+    action: 'download|'
+  options:
+    parameters:
+      type:
+        type: string
+      name:
+        type: string
+      lang:
+        type: string
+      action:
+        type: string
+
+# Redirection v2 — exclut "telecharger" du paramètre type
+gestion_documentaire.redirectRenderRessourcev2:
+  path: '/document/{type}/{name}/{lang}/{action}'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RedirectRenderRessourceController::content'
+    _title: 'Redirection ressource'
+    action: null
+  requirements:
+    _permission: "access content"
+    action: 'download|'
+    type: '(?!telecharger)(?!miniature)[^/]+'
+    lang: '[^/]*'
+  options:
+    parameters:
+      type:
+        type: string
+      name:
+        type: string
+      lang:
+        type: string
+      action:
+        type: string
+
+# =============================================================================
+# ROUTES DEBUG
+# =============================================================================
+
+gestion_documentaire.debug_taxonomies:
+  path: '/gestion_documentaire/debug/taxonomies'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\RessourceController::debugTaxonomies'
+    _title: 'Debug Taxonomies'
+  requirements:
+    _role: 'authenticated'
+
+# =============================================================================
+# ROUTES STATISTIQUES
+# =============================================================================
+
+gestion_documentaire.stats:
+  path: '/gestion_documentaire/stats'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\StatsController::stats'
+    _title: 'Statistiques documentaires'
+  requirements:
+    _role: 'authenticated'
+
+gestion_documentaire.stats.period_data:
+  path: '/gestion_documentaire/stats/period-data'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\StatsController::periodData'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+  methods: [GET]
+
+gestion_documentaire.stats.search_modified:
+  path: '/gestion_documentaire/stats/search-modified'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\StatsController::searchModified'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+  methods: [GET]
+
+gestion_documentaire.stats.search_inserted:
+  path: '/gestion_documentaire/stats/search-inserted'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\StatsController::searchInserted'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+  methods: [GET]
+
+gestion_documentaire.stats.export:
+  path: '/gestion_documentaire/stats/export'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\StatsController::exportReferences'
+  requirements:
+    _role: 'authenticated'
+  methods: [GET]
+
+
+
+# gestion_documentaire.simple_nav:
+#   path: '/gestion_documentaire/consulter/{id_char_version}'
+#   defaults:
+#     _controller: '\Drupal\gestion_documentaire\Controller\SimpleNavController::content'
+#     _title_callback: '\Drupal\gestion_documentaire\Controller\SimpleNavController::title'
+#   requirements:
+#     _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::access'
+#     id_char_version: '.+'
+
+
+gestion_documentaire.RefLangForm:
+  path: '/gestion_documentaire/RefLangForm/{media_id}'
+  defaults:
+    _form: '\Drupal\gestion_documentaire\Form\RefLangForm'
+    _title: 'Modifier le document'
+  requirements:
+    _permission: "access content"
+    # _custom_access: '\Drupal\gestion_documentaire\Controller\AccessMediaController::update'
+  options:
+    parameters:
+      media_id:
+        type: string
+
+
+gestion_documentaire.stats.access_data:
+  path: '/gestion_documentaire/stats/access-data'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\StatsController::accessData'
+  requirements:
+    _role: 'authenticated'
+
+
+gestion_documentaire.stats.access_log:
+  path: '/gestion_documentaire/stats/access-log'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\StatsController::accessLog'
+    _format: 'json'
+  requirements:
+    _role: 'authenticated'
+  methods: [GET]
+
+# =============================================================================
+# ROUTES API (client externe : cookie de session + X-CSRF-Token)
+# =============================================================================
+
+gestion_documentaire.api_connect:
+  path: '/gestion_documentaire/api/document/types'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\ApiController::connect'
+    _format: 'json'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2','cookie']
+    no_cache: TRUE
+
+gestion_documentaire.api_document:
+  path: '/gestion_documentaire/api/document'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\ApiController::serve'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2','cookie']
+    no_cache: TRUE
+
+gestion_documentaire.api_documents_by_type:
+  path: '/gestion_documentaire/api/document/list'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\ApiController::documentsByType'
+    _format: 'json'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2','cookie']
+    no_cache: TRUE
+
+gestion_documentaire.api_check:
+  path: '/gestion_documentaire/api/document/check'
+  defaults:
+    _controller: '\Drupal\gestion_documentaire\Controller\ApiController::check'
+    _format: 'json'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2','cookie']
+    no_cache: TRUE
+

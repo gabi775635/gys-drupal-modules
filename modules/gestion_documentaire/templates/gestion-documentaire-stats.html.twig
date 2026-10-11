@@ -1,0 +1,551 @@
+{#
+  Template : gestion_documentaire_stats
+#}
+
+<div class="gd-stats-wrap">
+
+  <h1 class="gd-stats-title">Statistiques documentaires</h1>
+
+  {# ——— Cartes globales ——— #}
+  <div class="gd-stats-cards">
+    <div class="gd-stat-card">
+      <div class="gd-stat-icon">📁</div>
+      <div class="gd-stat-value">{{ total_folders }}</div>
+      <div class="gd-stat-label">{{ 'Folders'|t }}</div>
+    </div>
+    <div class="gd-stat-card">
+      <div class="gd-stat-icon">📄</div>
+      <div class="gd-stat-value">{{ total_documents }}</div>
+      <div class="gd-stat-label">{{ 'Documents'|t }}</div>
+    </div>
+    <div class="gd-stat-card">
+      <div class="gd-stat-icon">🔄</div>
+      <div class="gd-stat-value">{{ total_revisions }}</div>
+      <div class="gd-stat-label">{{ 'Revisions'|t }}</div>
+    </div>
+  </div>
+
+  {# ——— Graphiques globaux ——— #}
+  <div class="gd-stats-charts-grid">
+    <div class="gd-stats-chart">
+      <h3>{{ 'Distribution by document type'|t }}</h3>
+      <canvas id="chartMediaType"></canvas>
+    </div>
+    <div class="gd-stats-chart">
+      <h3>{{ 'Distribution by language'|t }}</h3>
+      <canvas id="chartMediaLang"></canvas>
+    </div>
+    <div class="gd-stats-chart">
+      <h3>{{ 'Creation trend (12 months)'|t }}</h3>
+      <canvas id="chartEvolution"></canvas>
+    </div>
+    <div class="gd-stats-chart">
+      <h3>{{ 'Top references'|t }}</h3>
+      <canvas id="chartTopReferences"></canvas>
+    </div>
+    <div class="gd-stats-chart">
+      <h3>{{ 'Documents by folder'|t }}</h3>
+      <canvas id="chartDocsByFolder"></canvas>
+    </div>
+    <div class="gd-stats-chart">
+      <h3>{{ 'Top contributors'|t }}</h3>
+      <canvas id="chartTopContributors"></canvas>
+    </div>
+    <div class="gd-stats-chart">
+      <h3>{{ 'Document versions'|t }}</h3>
+      <canvas id="chartVersions"></canvas>
+    </div>
+    <div class="gd-stats-chart">
+      <h3>{{ 'Top consulted documents (all time)'|t }}</h3>
+      <canvas id="chartTopAccessed"></canvas>
+    </div>
+  </div>
+
+  {# ——— Dernières activités ——— #}
+  <div class="gd-stats-section">
+    <h3>{{ 'Recent activity (30 days)'|t }}</h3>
+    <div class="gd-table-container">
+      <table class="gd-stats-table">
+        <thead>
+          <tr>
+            <th>{{ 'Date'|t }}</th>
+            <th>{{ 'Name'|t }}</th>
+            <th>{{ 'User'|t }}</th>
+            <th>{{ 'Action'|t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for activity in recent_activities %}
+            <tr>
+              <td>{{ activity.changed_date|date('d/m/Y H:i') }}</td>
+              <td>{{ activity.entity_name }}</td>
+              <td>{{ activity.user_name ?: 'Anonyme' }}</td>
+              <td>
+                {% if activity.action == 'media_created' %}
+                  {{ 'Document created'|t }}
+                {% else %}
+                  {{ 'Document modified'|t }}
+                {% endif %}
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="4" class="gd-stats-empty">{{ 'No recent activity'|t }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# ============================================================ #}
+  {# SECTION — BANDE : VUE GLOBALE                               #}
+  {# ============================================================ #}
+  <div class="gd-section-band gd-band--gray">
+    <span class="gd-band-icon">◈</span> {{ 'Global stock'|t }}
+  </div>
+
+  {# ——— Répartitions type + langue ——— #}
+  <div class="gd-stats-section gd-section--attached">
+    <div class="gd-two-columns">
+      <div class="gd-column">
+        <h4>{{ 'By document type'|t }}</h4>
+        <div class="gd-table-container">
+          <table class="gd-stats-table" id="globalTypeTable">
+            <thead><tr><th>{{ 'Type'|t }}</th><th>{{ 'Count'|t }}</th><th>%</th></tr></thead>
+            <tbody><tr><td colspan="3" class="gd-stats-loading">{{ 'Loading...'|t }}</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="gd-column">
+        <h4>{{ 'By language'|t }}</h4>
+        <div class="gd-table-container">
+          <table class="gd-stats-table" id="globalLangTable">
+            <thead><tr><th>{{ 'Language'|t }}</th><th>{{ 'Count'|t }}</th><th>%</th></tr></thead>
+            <tbody><tr><td colspan="3" class="gd-stats-loading">{{ 'Loading...'|t }}</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ============================================================ #}
+  {# SECTION — FILTRES PÉRIODE                                    #}
+  {# ============================================================ #}
+  <div class="gd-section-band gd-band--blue">
+    <span class="gd-band-icon">◎</span> {{ 'Analysis by period'|t }}
+  </div>
+
+  <div class="gd-stats-section gd-stats-filters gd-section--attached">
+    <div class="gd-filter-form" id="statsFilterForm">
+
+      <div class="gd-filter-group">
+        <label>{{ 'Quick period'|t }}</label>
+        <div class="gd-quick-picks" id="quickPicks">
+          <button type="button" class="gd-qp" data-v="today">{{ "Today"|t }}</button>
+          <button type="button" class="gd-qp" data-v="yesterday">{{ "Yesterday"|t }}</button>
+          <button type="button" class="gd-qp" data-v="last_7_days">{{ "7 days"|t }}</button>
+          <button type="button" class="gd-qp gd-qp--active" data-v="current_month">{{ "This month"|t }}</button>
+          <button type="button" class="gd-qp" data-v="last_month">{{ "Last month"|t }}</button>
+          <button type="button" class="gd-qp" data-v="current_quarter">{{ "Quarter"|t }}</button>
+          <button type="button" class="gd-qp" data-v="current_year">{{ "This year"|t }}</button>
+          <button type="button" class="gd-qp" data-v="custom">{{ "Custom"|t }}</button>
+        </div>
+      </div>
+
+      <div class="gd-filter-group gd-date-range" id="dateRangeGroup" style="display:none;">
+        <label for="date_from">{{ 'From'|t }}</label>
+        <input type="date" id="date_from" class="gd-filter-input">
+        <label for="date_to">{{ 'To'|t }}</label>
+        <input type="date" id="date_to" class="gd-filter-input">
+      </div>
+
+      <div class="gd-filter-group">
+        <label for="type_filter">{{ 'Document type'|t }}</label>
+        <select id="type_filter" class="gd-filter-select">
+          <option value="">{{ 'All types'|t }}</option>
+          {% for type in available_types %}
+            <option value="{{ type.type }}">{{ type.type }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="gd-filter-actions">
+        <button type="button" id="applyFiltersBtn" class="gd-btn-primary">{{ 'Apply'|t }}</button>
+        <button type="button" id="resetFiltersBtn" class="gd-btn-secondary">↺ {{ 'Reset'|t }}</button>
+      </div>
+
+    </div>
+  </div>
+
+  {# ============================================================ #}
+  {# SECTION — BANDE : ACTIVITÉ ÉDITEURS                         #}
+  {# ============================================================ #}
+  <div class="gd-section-band gd-band--blue">
+    <span class="gd-band-icon">✦</span>
+    {{ 'Editor activity'|t }} — <span id="periodLabel">{{ 'this month'|t }}</span>
+  </div>
+
+  <div class="gd-stats-section gd-section--attached">
+
+    {# ——— Cartes période ——— #}
+    <div class="gd-stats-cards gd-stats-cards--period" id="periodCards">
+      <div class="gd-stat-card">
+        <div class="gd-stat-icon">📝</div>
+        <div class="gd-stat-value" id="totalModifiedCount">—</div>
+        <div class="gd-stat-label">{{ 'Modified documents'|t }}</div>
+        <div class="gd-stat-sub">{{ 'over the period'|t }}</div>
+      </div>
+      <div class="gd-stat-card">
+        <div class="gd-stat-icon">✨</div>
+        <div class="gd-stat-value" id="totalInsertedCount">—</div>
+        <div class="gd-stat-label">{{ 'New documents'|t }}</div>
+        <div class="gd-stat-sub">{{ 'over the period'|t }}</div>
+      </div>
+      <div class="gd-stat-card gd-stat-card--success">
+        <div class="gd-stat-icon">🟢</div>
+        <div class="gd-stat-value" id="totalLangAddedCount">—</div>
+        <div class="gd-stat-label">{{ 'Languages added'|t }}</div>
+        <div class="gd-stat-sub">{{ 'over the period'|t }}</div>
+      </div>
+      <div class="gd-stat-card gd-stat-card--danger">
+        <div class="gd-stat-icon">🔴</div>
+        <div class="gd-stat-value" id="totalLangRemovedCount">—</div>
+        <div class="gd-stat-label">{{ 'Languages removed'|t }}</div>
+        <div class="gd-stat-sub">{{ 'over the period'|t }}</div>
+      </div>
+    </div>
+
+    {# ——— Stats par type ——— #}
+    <div id="typeStatsSection">
+      <h3>{{ 'Changes by document type'|t }}</h3>
+      <div class="gd-two-columns">
+        <div class="gd-column">
+          <h4>{{ 'Modified documents'|t }}</h4>
+          <div class="gd-table-container">
+            <table class="gd-stats-table" id="modifiedStatsTable">
+              <thead><tr><th>{{ 'Type'|t }}</th><th>{{ 'Count'|t }}</th><th>%</th></tr></thead>
+              <tbody><tr><td colspan="3" class="gd-stats-loading">{{ 'Loading...'|t }}</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="gd-column">
+          <h4>{{ 'New documents'|t }}</h4>
+          <div class="gd-table-container">
+            <table class="gd-stats-table" id="insertedStatsTable">
+              <thead><tr><th>{{ 'Type'|t }}</th><th>{{ 'Count'|t }}</th><th>%</th></tr></thead>
+              <tbody><tr><td colspan="3" class="gd-stats-loading">{{ 'Loading...'|t }}</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ============================================================ #}
+  {# SECTION — BANDE : CONSULTATIONS                             #}
+  {# ============================================================ #}
+  <div class="gd-section-band gd-band--teal">
+    <span class="gd-band-icon">👁</span> {{ 'Consultations & downloads'|t }}
+  </div>
+
+  <div class="gd-stats-section gd-section--attached">
+
+    {# ——— Cartes accès ——— #}
+    <div class="gd-stats-cards gd-stats-cards--period">
+      <div class="gd-stat-card gd-stat-card--views">
+        <div class="gd-stat-icon">👁️</div>
+        <div class="gd-stat-value" id="totalViewsCount">—</div>
+        <div class="gd-stat-label">{{ 'Consultations'|t }}</div>
+        <div class="gd-stat-sub">{{ 'over the period'|t }}</div>
+      </div>
+      <div class="gd-stat-card gd-stat-card--downloads">
+        <div class="gd-stat-icon">⬇️</div>
+        <div class="gd-stat-value" id="totalDownloadsCount">—</div>
+        <div class="gd-stat-label">{{ 'Downloads'|t }}</div>
+        <div class="gd-stat-sub">{{ 'over the period'|t }}</div>
+      </div>
+      <div class="gd-stat-card">
+        <div class="gd-stat-icon">👥</div>
+        <div class="gd-stat-value" id="totalUniqueUsers">—</div>
+        <div class="gd-stat-label">{{ 'Unique users'|t }}</div>
+        <div class="gd-stat-sub">{{ 'over the period'|t }}</div>
+      </div>
+    </div>
+
+    {# ——— Graphique évolution ——— #}
+    <div class="gd-stats-chart gd-chart--fullwidth">
+      <h3>{{ 'Consultations & downloads trend'|t }}</h3>
+      <canvas id="chartAccessEvolution" style="max-height:300px;"></canvas>
+    </div>
+
+    <div class="gd-stats-divider"></div>
+
+    {# ——— Top documents ——— #}
+    <h3>{{ 'Top consulted documents'|t }}</h3>
+    <div class="gd-table-toolbar">
+      <div class="gd-toolbar-left">
+        <input type="text" id="topDocsSearch" class="gd-search-input"
+               placeholder="{{ 'Search a document...'|t }}">
+        <select id="topDocsPerPage" class="gd-per-page-select">
+          <option value="10">10 / {{ 'page'|t }}</option>
+          <option value="20" selected>20 / {{ 'page'|t }}</option>
+          <option value="50">50 / {{ 'page'|t }}</option>
+          <option value="100">100 / {{ 'page'|t }}</option>
+        </select>
+      </div>
+      <div class="gd-toolbar-right">
+        <span class="gd-table-info" id="topDocsInfo"></span>
+        <button type="button" class="gd-btn-excel" id="exportTopDocsBtn">⬇ {{ 'Excel'|t }}</button>
+      </div>
+    </div>
+    <div class="gd-table-container">
+      <table class="gd-stats-table gd-sortable-table" id="topDocsTable">
+        <thead>
+          <tr>
+            <th data-sort="doc_name">{{ 'Document'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="doc_type">{{ 'Type'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="views" class="gd-text-center">{{ 'Views'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="downloads" class="gd-text-center">{{ 'Downloads'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="total_accesses" class="gd-text-center">{{ 'Total'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="unique_users" class="gd-text-center">{{ 'Unique users'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="last_access">{{ 'Last access'|t }} <span class="gd-sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="7" class="gd-stats-loading">{{ 'Loading...'|t }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="topDocsPagination" class="gd-pagination"></div>
+
+    <div class="gd-stats-divider"></div>
+
+    {# ——— Stats par utilisateur ——— #}
+    <h3>{{ 'Access by user'|t }}</h3>
+    <div class="gd-table-toolbar">
+      <div class="gd-toolbar-left">
+        <input type="text" id="topUsersSearch" class="gd-search-input"
+               placeholder="{{ 'Search a user (tiers ID)...'|t }}">
+        <select id="topUsersPerPage" class="gd-per-page-select">
+          <option value="10">10 / {{ 'page'|t }}</option>
+          <option value="20" selected>20 / {{ 'page'|t }}</option>
+          <option value="50">50 / {{ 'page'|t }}</option>
+        </select>
+      </div>
+      <div class="gd-toolbar-right">
+        <span class="gd-table-info" id="topUsersInfo"></span>
+        <button type="button" class="gd-btn-excel" id="exportTopUsersBtn">⬇ {{ 'Excel'|t }}</button>
+      </div>
+    </div>
+    <div class="gd-table-container">
+      <table class="gd-stats-table gd-sortable-table" id="topUsersTable">
+        <thead>
+          <tr>
+            <th data-sort="user_label">{{ 'User (tiers ID)'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="views" class="gd-text-center">{{ 'Views'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="downloads" class="gd-text-center">{{ 'Downloads'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="total_accesses" class="gd-text-center">{{ 'Total'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="unique_docs" class="gd-text-center">{{ 'Unique docs'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="last_access">{{ 'Last access'|t }} <span class="gd-sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="6" class="gd-stats-loading">{{ 'Loading...'|t }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="topUsersPagination" class="gd-pagination"></div>
+
+  </div>
+
+  {# ============================================================ #}
+  {# SECTION — BANDE : STATUTS & ERREURS                         #}
+  {# ============================================================ #}
+  <div class="gd-section-band gd-band--red">
+    <span class="gd-band-icon">⚑</span> {{ 'Access statuses — success & errors'|t }}
+  </div>
+
+  <div class="gd-stats-section gd-section--attached">
+
+    {# ——— Cartes statuts ——— #}
+    <div class="gd-stats-cards gd-stats-cards--period">
+      <div class="gd-stat-card gd-stat-card--success">
+        <div class="gd-stat-icon">✅</div>
+        <div class="gd-stat-value" id="totalSuccessCount">—</div>
+        <div class="gd-stat-label">{{ 'Successes'|t }}</div>
+      </div>
+      <div class="gd-stat-card gd-stat-card--danger">
+        <div class="gd-stat-icon">❌</div>
+        <div class="gd-stat-value" id="totalErrorCount">—</div>
+        <div class="gd-stat-label">{{ 'Errors'|t }}</div>
+      </div>
+      <div class="gd-stat-card">
+        <div class="gd-stat-icon">📊</div>
+        <div class="gd-stat-value" id="totalSuccessRate">—</div>
+        <div class="gd-stat-label">{{ 'Success rate'|t }}</div>
+      </div>
+    </div>
+
+    {# ——— Tableau journal d'accès ——— #}
+    <h3>{{ 'Access log'|t }}</h3>
+    <div class="gd-table-toolbar">
+      <div class="gd-toolbar-left">
+        <input type="text" id="errorsSearch" class="gd-search-input"
+               placeholder="{{ 'Search by message, reference, tiers, document...'|t }}">
+        <select id="errorsStatusFilter" class="gd-filter-select-sm">
+          <option value="">{{ 'All statuses'|t }}</option>
+          <option value="success">{{ 'Success'|t }}</option>
+          <option value="error">{{ 'Error'|t }}</option>
+        </select>
+        <select id="errorsActionFilter" class="gd-filter-select-sm">
+          <option value="">{{ 'All actions'|t }}</option>
+          <option value="view">view</option>
+          <option value="download">download</option>
+          <option value="error">error</option>
+        </select>
+        <select id="errorsPerPage" class="gd-per-page-select">
+          <option value="10">10 / {{ 'page'|t }}</option>
+          <option value="20" selected>20 / {{ 'page'|t }}</option>
+          <option value="50">50 / {{ 'page'|t }}</option>
+          <option value="100">100 / {{ 'page'|t }}</option>
+        </select>
+      </div>
+      <div class="gd-toolbar-right">
+        <span class="gd-table-info" id="errorsInfo"></span>
+        <button type="button" class="gd-btn-excel" id="exportAccessBtn">⬇ {{ 'Export access'|t }}</button>
+        <button type="button" class="gd-btn-excel gd-btn-excel--red" id="exportErrorsBtn">⬇ {{ 'Export errors'|t }}</button>
+      </div>
+    </div>
+    <div class="gd-table-container">
+      <table class="gd-stats-table gd-sortable-table" id="errorsTable">
+        <thead>
+          <tr>
+            <th data-sort="date_formatted">{{ 'Date'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="status">{{ 'Status'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="action">{{ 'Action'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="media_id">Media ID <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="media_name">{{ 'Document'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="doc_type">{{ 'Type'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="lang">{{ 'Language'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="reference">{{ 'Reference'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="tiers_label">{{ 'Tiers'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="file_uri">{{ 'File path'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="message">{{ 'Message'|t }} <span class="gd-sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="11" class="gd-stats-loading">{{ 'Loading...'|t }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="errorsPagination" class="gd-pagination"></div>
+
+  </div>
+
+  {# ============================================================ #}
+  {# SECTION — BANDE : RÉFÉRENCES                                #}
+  {# ============================================================ #}
+  <div class="gd-section-band gd-band--amber">
+    <span class="gd-band-icon">⊞</span> {{ 'References — modifications & creations'|t }}
+  </div>
+
+  <div class="gd-stats-section gd-section--attached">
+
+    {# ——— Références modifiées ——— #}
+    <h3>{{ 'Modified references'|t }}</h3>
+    <div class="gd-table-toolbar">
+      <div class="gd-toolbar-left">
+        <input type="text" id="modifiedSearchInput" class="gd-search-input"
+               placeholder="{{ 'Search by reference or document name...'|t }}">
+        <select id="modifiedTypeFilter" class="gd-filter-select-sm">
+          <option value="">{{ 'All types'|t }}</option>
+          {% for type in available_types %}
+            <option value="{{ type.type }}">{{ type.type }}</option>
+          {% endfor %}
+        </select>
+        <select id="modifiedPerPage" class="gd-per-page-select">
+          <option value="10">10 / {{ 'page'|t }}</option>
+          <option value="20" selected>20 / {{ 'page'|t }}</option>
+          <option value="50">50 / {{ 'page'|t }}</option>
+          <option value="100">100 / {{ 'page'|t }}</option>
+        </select>
+      </div>
+      <div class="gd-toolbar-right">
+        <span class="gd-table-info" id="modifiedInfo"></span>
+        <button type="button" id="modifiedResetBtn" class="gd-btn-secondary">↺ {{ 'Reset'|t }}</button>
+        <button type="button" class="gd-btn-excel" id="exportModifiedBtn">⬇ {{ 'Excel'|t }}</button>
+      </div>
+    </div>
+    <div class="gd-table-container">
+      <table class="gd-stats-table gd-sortable-table" id="modifiedReferencesTable">
+        <thead>
+          <tr>
+            <th data-sort="reference">{{ 'Reference'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="type">{{ 'Type'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th>{{ 'Languages'|t }}</th>
+            <th data-sort="document_name">{{ 'Document'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="author_name">{{ 'Author'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="last_editor_name">{{ 'Last editor'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="revision_count" class="gd-text-center">{{ 'Modifications'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="last_modified">{{ 'Last modified'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="modification_dates">{{ 'Dates'|t }} <span class="gd-sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="9" class="gd-stats-loading">{{ 'Loading...'|t }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="modifiedPagination" class="gd-pagination"></div>
+
+    <div class="gd-stats-divider"></div>
+
+    {# ——— Nouvelles références ——— #}
+    <h3>{{ 'New references created'|t }}</h3>
+    <div class="gd-table-toolbar">
+      <div class="gd-toolbar-left">
+        <input type="text" id="insertedSearchInput" class="gd-search-input"
+               placeholder="{{ 'Search by reference or document name...'|t }}">
+        <select id="insertedTypeFilter" class="gd-filter-select-sm">
+          <option value="">{{ 'All types'|t }}</option>
+          {% for type in available_types %}
+            <option value="{{ type.type }}">{{ type.type }}</option>
+          {% endfor %}
+        </select>
+        <select id="insertedPerPage" class="gd-per-page-select">
+          <option value="10">10 / {{ 'page'|t }}</option>
+          <option value="20" selected>20 / {{ 'page'|t }}</option>
+          <option value="50">50 / {{ 'page'|t }}</option>
+          <option value="100">100 / {{ 'page'|t }}</option>
+        </select>
+      </div>
+      <div class="gd-toolbar-right">
+        <span class="gd-table-info" id="insertedInfo"></span>
+        <button type="button" id="insertedResetBtn" class="gd-btn-secondary">↺ {{ 'Reset'|t }}</button>
+        <button type="button" class="gd-btn-excel" id="exportInsertedBtn">⬇ {{ 'Excel'|t }}</button>
+      </div>
+    </div>
+    <div class="gd-table-container">
+      <table class="gd-stats-table gd-sortable-table" id="insertedReferencesTable">
+        <thead>
+          <tr>
+            <th data-sort="reference">{{ 'Reference'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="type">{{ 'Type'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="lang">{{ 'Language'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="document_name">{{ 'Document'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="author_name">{{ 'Author'|t }} <span class="gd-sort-icon">↕</span></th>
+            <th data-sort="created_date">{{ 'Created at'|t }} <span class="gd-sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="6" class="gd-stats-loading">{{ 'Loading...'|t }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="insertedPagination" class="gd-pagination"></div>
+
+  </div>
+
+</div>{# /gd-stats-wrap #}

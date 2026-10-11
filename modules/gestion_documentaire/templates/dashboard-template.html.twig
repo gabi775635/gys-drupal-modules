@@ -1,0 +1,231 @@
+<style>
+table {
+  table-layout: auto;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td, th {
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+
+th {
+  background: #f2f2f2;
+}
+
+.filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: flex-end;
+}
+
+.filter-container label {
+  display: block;
+  font-size: 0.85em;
+  margin-bottom: 2px;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-item input {
+  padding: 6px 8px;
+  font-size: 0.9em;
+  width: 160px;
+}
+
+@media (max-width: 600px) {
+  .filter-item input {
+    width: 100%;
+  }
+}
+</style>
+
+<h2>📄 Modifications récentes</h2>
+
+<div class="filter-container">
+  <div class="filter-item">
+    <label for="nameFilter">Nom</label>
+    <input type="text" id="nameFilter" placeholder="Nom...">
+  </div>
+
+  <div class="filter-item">
+    <label for="userFilter">Utilisateur</label>
+    <input type="text" id="userFilter" placeholder="Utilisateur...">
+  </div>
+
+  <div class="filter-item">
+    <label for="emailFilter">Email</label>
+    <input type="text" id="emailFilter" placeholder="Email...">
+  </div>
+
+  <div class="filter-item">
+    <label for="dateFilterStart">Date début plage</label>
+    <input type="datetime-local" id="dateFilterStart">
+  </div>
+
+  <div class="filter-item">
+    <label for="dateFilterEnd">Date fin plage</label>
+    <input type="datetime-local" id="dateFilterEnd">
+  </div>
+
+  <select id="filter-type">
+    <option value="">Tous les types</option>
+    <option value="taxonomy">Taxonomy</option>
+    <option value="media">Media</option>
+  </select>
+</div>
+
+<div id="recent-changes-container">
+  <table id="recent-changes-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Nom</th>
+        <th>Ancien nom</th>
+        <th>Parent</th>
+        <th>Utilisateur</th>
+        <th>Date</th>
+        <th>Email</th>
+        <th>Rôles ajoutés</th>
+        <th>Rôles modifiés</th>
+        <th>Rôles supprimés</th>
+        <th>Dernière action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="8">Chargement...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="pagination" style="margin-top:10px; text-align:center;">
+  <button id="prevPage">⬅ Précédent</button>
+  <span id="pageInfo">Page 1</span>
+  <button id="nextPage">Suivant ➡</button>
+</div>
+
+<script>
+let currentPage = 0;
+const perPage = 20;
+const tbody = document.querySelector("#recent-changes-table tbody");
+const parent = '{{ parent|default("") }}';
+const basePath = "{{ base_path() }}";
+
+async function fetchRecentChanges() {
+  const params = new URLSearchParams({
+    term: parent,
+    name: document.querySelector('#nameFilter').value,
+    page: currentPage,
+    per_page: perPage,
+    name: document.getElementById('nameFilter').value,
+    user: document.getElementById('userFilter').value,
+    email: document.getElementById('emailFilter').value,
+    dateFilterStart: document.getElementById('dateFilterStart').value,
+    dateFilterEnd: document.getElementById('dateFilterEnd').value,
+    type:  document.getElementById("filter-type").value
+  });
+  console.log(params)
+
+  const url = basePath + `gestion_documentaire/history/parent?${params.toString()}`;
+  console.log(url);
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Erreur réseau');
+    const data = await res.json();
+    console.log(data)
+    const results = data[0];
+    const total = data[1];
+    const offset = data[2];
+    const limit = data[3];
+
+    tbody.innerHTML = '';
+
+    if (!results || results.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8">Aucune modification trouvée.</td></tr>`;
+      return;
+    }
+
+    results.forEach(row => {
+      let res = {};
+      try { res = JSON.parse(row.revision_log_message || '{}'); } catch {}
+      
+      let role_insert = (row.roles_insert) || '';
+      let role_update = (row.roles_update) || '';
+      let role_delete = (row.roles_delete) || '';
+      let action = res.modif == 1 ? 'Mise à jour' : 'Création';
+      console.log(row)
+      console.log(res)
+      console.log(res[row.type])
+      console.log(res[row.type]['nom'])
+      console.log(res[row.type]['nom']['nouveau'])
+      
+      let old_name=res[row.type]['nom']['nouveau']
+      let old_parent=res[row.type]['parent']['nouveau']
+      let typeIcon = "";
+        if (row.entity_type === "media" || row.type === "media") {
+          typeIcon = "📄";
+        } else if (row.entity_type === "taxonomy" || row.type === "taxonomy") {
+          typeIcon = "📁";
+        } else {
+          typeIcon = "";
+        }
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${typeIcon ?? ''}</td>
+        <td>${row.name ?? ''}</td>
+        <td>${old_name ?? ''}</td>
+        <td>${old_parent ?? ''}</td>
+        <td>${row.revision_user ?? ''}</td>
+        <td>${row.revision_created ?? ''}</td>
+        <td>${row.email ?? ''}</td>
+        <td>${role_insert}</td>
+        <td>${role_update}</td>
+        <td>${role_delete}</td>
+        <td>${action}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("pageInfo").textContent = `Page ${currentPage + 1}`;
+    document.getElementById("prevPage").style.display = offset === 0 ? 'none' : 'inline';
+    document.getElementById("nextPage").style.display = offset + limit >= total ? 'none' : 'inline';
+
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="8" style="color:red;">Erreur : ${err.message}</td></tr>`;
+  }
+}
+
+document.getElementById("prevPage").addEventListener("click", () => {
+  if (currentPage > 0) { currentPage--; fetchRecentChanges(); }
+});
+document.getElementById("nextPage").addEventListener("click", () => {
+  currentPage++; fetchRecentChanges();
+});
+
+['nameFilter','userFilter','emailFilter','dateFilterStart','dateFilterEnd'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { 
+    console.log("la")
+    currentPage = 0; 
+    fetchRecentChanges(); 
+  });
+});
+['filter-type'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => { 
+    currentPage = 0; 
+    fetchRecentChanges(); 
+  });
+});
+
+fetchRecentChanges();
+</script>

@@ -1,0 +1,148 @@
+<?php
+
+/**
+ * @file
+ * Fichier principal du module Gestion Documentaire.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function gestion_documentaire_theme($existing, $type, $theme, $path) {
+  return [
+    'home_template' => [
+      'variables' => [
+        'fil_ariane'      => [],
+        'id_char_version' => NULL,
+        'type'            => NULL,
+        'langcode'        => NULL,
+        'search_url'      => '',
+        'results'         => [],
+        'parent_perms'    => [],
+        'is_admin'    => NULL,
+      ],
+    ],
+    'dashboard_template' => [
+      'variables' => [
+        'parent'      => '',
+        'history_url' => '',
+      ],
+    ],
+    'simple_nav_template' => [
+      'variables' => [],
+      'template' => 'simple-nav-block',
+    ],
+
+     'gestion_documentaire_stats' => [
+      'variables' => [
+        'total_folders' => 0,
+        'total_documents' => 0,
+        'total_revisions' => 0,
+        'sav_enabled' => 0,
+        'recent_activities' => [],
+        'chart_data' => [],
+        'langcode' => 'fr',
+        // Variables de période et filtres
+        'period' => 'current_month',
+        'date_from' => NULL,
+        'date_to' => NULL,
+        'type_filter' => '',
+        'available_types' => [],
+        // Stats par période
+        'inserted_stats' => [],
+        'modified_stats' => [],
+        'modified_references' => [],
+        'inserted_references' => [],
+      ],
+      'template' => 'gestion-documentaire-stats',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_page_attachments().
+ */
+function gestion_documentaire_page_attachments(array &$attachments) {
+  $route_name = \Drupal::routeMatch()->getRouteName();
+
+  if (strpos($route_name, 'gestion_documentaire.') === 0) {
+    $attachments['#attached']['library'][] = 'gestion_documentaire/global';
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for gestion_documentaire_stats.
+ */
+function gestion_documentaire_preprocess_gestion_documentaire_stats(&$variables) {
+    // Passer les données au JS via drupalSettings
+    $variables['#attached']['drupalSettings']['gdStats'] = $variables['chart_data'];
+    $variables['#attached']['drupalSettings']['gdStatsData'] = $variables['chart_data'];
+}
+
+
+function gestion_documentaire_media_delete($media) {
+    if ($media->bundle() !== 'document') return;
+
+    $account  = \Drupal::currentUser();
+    $tiers_id = \Drupal::database()->select('user__field_id', 'ufi')
+        ->fields('ufi', ['field_id_value'])
+        ->condition('ufi.entity_id', $account->id())
+        ->execute()
+        ->fetchField();
+
+    \Drupal::database()->insert('gestion_documentaire_access_log')
+        ->fields([
+            'media_id'  => (int) $media->id(),
+            'tiers_id'  => $tiers_id ?? '',
+            'timestamp' => \Drupal::time()->getCurrentTime(),
+            'action'    => 'delete',
+            'status'    => 'success',
+            'message'   => json_encode([
+                'name'      => $media->getName(),
+                'type'      => $media->get('field_media_type')->value ?? '',
+                'lang'      => $media->get('field_media_lang')->value ?? '',
+                'reference' => $media->get('field_media_reference')->value ?? '',
+                'hash'      => $media->get('field_media_hash')->value ?? '',
+            ]),
+        ])
+        ->execute();
+}
+
+function gestion_documentaire_media_update($media) {
+  static $processing = [];
+  $mid = $media->id();
+
+  if (!empty($processing[$mid])) {
+    return;
+  }
+  $processing[$mid] = true;
+
+  // ============================
+  // Nettoyage ancien fichier source si remplacé
+  // ============================
+  $original = $media->original ?? null;
+  if ($original) {
+    $old_file = $original->get('field_media_document')->entity ?? null;
+    $new_file = $media->get('field_media_document')->entity ?? null;
+
+    if ($old_file && $new_file && $old_file->id() !== $new_file->id()) {
+      // Supprimer le fichier physique
+      $file_system = \Drupal::service('file_system');
+      $old_path = $file_system->realpath($old_file->getFileUri());
+      if ($old_path && file_exists($old_path)) {
+        @unlink($old_path);
+      }
+      
+      // Supprimer l'entrée en base
+      \Drupal::database()->delete('file_managed')
+        ->condition('fid', $old_file->id())
+        ->execute();
+
+      \Drupal::database()->delete('file_usage')
+        ->condition('fid', $old_file->id())
+        ->execute();
+    }
+  }
+
+  unset($processing[$mid]);
+}

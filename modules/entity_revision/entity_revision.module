@@ -1,0 +1,152 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\RevisionableInterface;
+use Drupal\taxonomy\Entity\Term;
+
+/**
+ * Implémente hook_entity_presave().
+ */
+function entity_revision_entity_presave(EntityInterface $entity) {
+  $entity_type = $entity->getEntityTypeId();
+  if (!in_array($entity_type, ['taxonomy_term', 'media'], TRUE)) {
+    return;
+  }
+
+  // Sécurité : ignorer file (au cas où)
+  if ($entity_type === 'file') {
+    return;
+  }
+
+ 
+
+  // Forcer le revision_user pour les entités révisionnables
+  if ($entity instanceof RevisionableInterface && $entity->hasField('revision_user')) {
+    if ($entity->get('revision_user')->isEmpty()) {
+      $uid = \Drupal::currentUser()->id() ?: 1;
+      $entity->set('revision_user', $uid);
+    }
+  }
+
+  // Si revision_log_message est vide → on le construit
+  $existing_log = $entity->get('revision_log_message')->value ?? '';
+  if (empty(trim($existing_log))) {
+    $uid = \Drupal::currentUser()->id() ?: 1;
+    $entity_type = $entity->getEntityTypeId();
+    $langcode = $entity->language()->getId();
+
+    $data = [
+      'revision_log_message' => null,
+      'name' => $entity->get('name')->value ?? '',
+      'parent_terms' => [],
+      'entity_type' => $entity_type,
+      'entity_bundle' => ucfirst($entity->bundle()),
+    ];
+    $type = "media";
+
+    if ($entity_type == 'taxonomy_term') {
+      $type = "taxonomy";
+    }
+    
+    $taxonomy_data = [
+      $type => [
+        'nom' => [
+          'ancien' => '',
+          'nouveau' => $entity->get('name')->value ?? '',
+        ],
+        'parent' => [
+          'ancien' => '',
+          'nouveau' => '',
+        ],
+      ],
+      'roles_update' => [],
+      'roles_insert' => [],
+      'roles_delete' => [],
+    ];
+
+    // Taxonomy
+    if ($entity_type === 'taxonomy_term') {
+      if ($entity->hasField('parent') && !$entity->get('parent')->isEmpty()) {
+        $parent_terms = [];
+        foreach ($entity->get('parent') as $item) {
+          $tid = $item->target_id ?? $item->value;
+          $term = Term::load($tid);
+          if ($term) {
+            $parent_terms[] = ['id' => $tid, 'name' => $term->label()];
+          }
+        }
+        $taxonomy_data[$type]['parent']['nouveau'] = $parent_terms[0]['name'] ?? '';
+        $data['parent_terms'] = $parent_terms;
+      }
+    }
+
+    // Media
+    elseif ($entity_type === 'media') {
+
+      // =====================================================
+      // Récupération des champs media
+      // =====================================================
+      
+      // Références
+      $references = '';
+      if ($entity->hasField('field_media_reference') && !$entity->get('field_media_reference')->isEmpty()) {
+        $ref_value = $entity->get('field_media_reference')->value;
+        $references = $ref_value ?? '';
+      }
+
+      // Langue
+      $lang = '';
+      if ($entity->hasField('field_media_lang') && !$entity->get('field_media_lang')->isEmpty()) {
+        $lang_value = $entity->get('field_media_lang')->value;
+        $lang = $lang_value ?? '';
+      }
+
+      // Type
+      $media_type = '';
+      if ($entity->hasField('field_media_type') && !$entity->get('field_media_type')->isEmpty()) {
+        $type_value = $entity->get('field_media_type')->value;
+        $media_type = $type_value ?? '';
+      }
+
+      // Hash
+      $hash = '';
+      if ($entity->hasField('field_media_hash') && !$entity->get('field_media_hash')->isEmpty()) {
+        $hash_value = $entity->get('field_media_hash')->value;
+        $hash = $hash_value ?? '';
+      }
+
+      // Ajout dans le tableau taxonomy_data
+      $taxonomy_data[$type]['references'] = $references;
+      $taxonomy_data[$type]['lang'] = $lang;
+      $taxonomy_data[$type]['type'] = $media_type;
+      $taxonomy_data[$type]['hash'] = $hash;
+
+      if ($entity->hasField('field_taxonomie_associee') && !$entity->get('field_taxonomie_associee')->isEmpty()) {
+        $term_items = [];
+        foreach ($entity->get('field_taxonomie_associee') as $item) {
+          $tid = $item->target_id ?? $item->value;
+          $term = Term::load($tid);
+          if ($term) {
+            $term_items[] = ['id' => $tid, 'name' => $term->label()];
+          }
+        }
+        $taxonomy_data[$type]['parent']['nouveau'] = $term_items[0]['name'] ?? '';
+        $data['parent_terms'] = $term_items;
+      }
+
+      $taxonomy_data[$type]['nom']['nouveau'] = $entity->get('name')->value ?? '';
+    }
+
+    // Encodage du sous-objet revision_log_message
+    $data = $taxonomy_data;
+
+    // Écriture finale du champ
+    $entity->set('revision_log_message', json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+
+
+    // Log de debug
+    \Drupal::logger('monmodule')->notice('Revision log généré: @json', [
+      '@json' => json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+    ]);
+  }
+}

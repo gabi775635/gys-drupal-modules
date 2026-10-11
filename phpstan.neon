@@ -1,0 +1,25 @@
+parameters:
+  # Niveau d'analyse (0 = permissif, 9 = strict)
+  # Niveau 3 recommandé pour débuter avec du code Drupal existant
+  level: 3
+
+  paths:
+    - modules/gestion_documentaire/src
+    - modules/entity_revision
+
+  excludePaths:
+    - '*/node_modules/*'
+    - '*/vendor/*'
+
+  # Extension Drupal pour PHPStan
+  drupal:
+    drupal_root: .
+
+  # Ignorer les erreurs Drupal connues (API non typée)
+  ignoreErrors:
+    - '#Call to an undefined method Drupal\\Core\\Entity\\EntityInterface::#'
+    - '#Method Drupal\\.*::.*\(\) has no return type specified#'
+    - '#Parameter \$.*of function .* has no type specified#'
+
+  # Mémoire disponible
+  memoryLimit: 512M

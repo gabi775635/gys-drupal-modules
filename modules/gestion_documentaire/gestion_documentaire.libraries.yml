@@ -1,0 +1,79 @@
+tableData:
+  css:
+    theme:
+      css/tableData.css: {}
+      
+  js:
+    js/tableData.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+global:
+  css:
+    theme:
+      css/global.css: {}
+
+chartjs:
+  remote: https://www.chartjs.org/
+  version: 3.9.1
+  license:
+    name: MIT
+    url: https://github.com/chartjs/Chart.js/blob/master/LICENSE.md
+    gpl-compatible: true
+  js:
+    https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js: { type: external, minified: true }
+
+stats:
+  version: 1.0
+  css:
+    theme:
+      css/stats.css: {}
+  js:
+    js/stats.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - gestion_documentaire/chartjs
+
+home_block:
+  js:
+    js/home-block.js: {}
+  css:
+    theme:
+      css/home-block.css: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/once
+    - core/drupalSettings
+
+
+simple_nav_block:
+  js:
+    js/simple-nav-block.js: {}
+  css:
+    theme:
+      css/simple-nav-block.css: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - core/drupalSettings
+
+
+file_icons:
+  css:
+    component:
+      https://cdn.jsdelivr.net/npm/file-icon-vectors@1.0.0/dist/file-icon-vivid.min.css: { type: external, minified: true }
+
+upload_simple:
+  version: 1.0
+  css:
+    theme:
+      css/upload-simple.css: {}
+  js:
+    js/upload-simple.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once

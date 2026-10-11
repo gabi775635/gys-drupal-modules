@@ -1,0 +1,343 @@
+name: CI - Drupal Modules GYS
+
+on:
+  push:
+    branches: [ main, develop, "feature/**", "fix/**" ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PHP_VERSION: "8.1"
+  DRUPAL_VERSION: "9.5"
+
+jobs:
+  # ─────────────────────────────────────────────
+  # 1. LINT & STATIC ANALYSIS (PHP_CodeSniffer)
+  # ─────────────────────────────────────────────
+  phpcs:
+    name: "Code Style (PHPCS Drupal)"
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer, cs2pr
+          extensions: mbstring, xml, curl, gd, pdo, intl
+
+      - name: Install Drupal Coder (PHPCS standards)
+        run: |
+          composer global require drupal/coder
+          composer global require squizlabs/php_codesniffer
+          ~/.composer/vendor/bin/phpcs --config-set installed_paths ~/.composer/vendor/drupal/coder/coder_sniffer
+
+      - name: Run PHPCS on gestion_documentaire
+        run: |
+          ~/.composer/vendor/bin/phpcs \
+            --standard=Drupal,DrupalPractice \
+            --extensions=php,module,inc,install,test,profile,theme,css,info,txt,md,yml \
+            --ignore=*.min.js,*.min.css \
+            --report=checkstyle \
+            --report-file=phpcs-report-gestion.xml \
+            modules/gestion_documentaire/ || true
+
+      - name: Run PHPCS on entity_revision
+        run: |
+          ~/.composer/vendor/bin/phpcs \
+            --standard=Drupal,DrupalPractice \
+            --extensions=php,module,inc,install \
+            --report=checkstyle \
+            --report-file=phpcs-report-entity.xml \
+            modules/entity_revision/ || true
+
+      - name: Annotate PR with PHPCS results
+        run: |
+          cs2pr phpcs-report-gestion.xml || true
+          cs2pr phpcs-report-entity.xml || true
+
+      - name: Upload PHPCS reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phpcs-reports
+          path: phpcs-report-*.xml
+
+  # ─────────────────────────────────────────────
+  # 2. PHPSTAN - Analyse statique de types
+  # ─────────────────────────────────────────────
+  phpstan:
+    name: "Static Analysis (PHPStan)"
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer
+          extensions: mbstring, xml, curl
+
+      - name: Install PHPStan + Drupal extension
+        run: |
+          composer global require phpstan/phpstan
+          composer global require mglaman/phpstan-drupal
+          composer global require phpstan/phpstan-deprecation-rules
+
+      - name: Run PHPStan
+        run: |
+          ~/.composer/vendor/bin/phpstan analyse \
+            modules/gestion_documentaire/src \
+            modules/entity_revision \
+            --level=3 \
+            --error-format=github \
+            --no-progress \
+            --memory-limit=512M || true
+
+  # ─────────────────────────────────────────────
+  # 3. TESTS UNITAIRES PHP (PHPUnit)
+  # ─────────────────────────────────────────────
+  phpunit:
+    name: "Unit Tests (PHPUnit)"
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer, phpunit
+          extensions: mbstring, xml, curl, gd, pdo, intl, dom
+
+      - name: Install Drupal test dependencies
+        run: |
+          composer global require drupal/core-dev:^9 --ignore-platform-reqs || true
+          composer global require phpunit/phpunit:^9 || true
+
+      - name: Run unit tests (if any)
+        run: |
+          if find modules/ -name "*Test.php" | grep -q .; then
+            phpunit --testdox \
+              --log-junit test-results.xml \
+              --coverage-clover coverage.xml \
+              modules/
+          else
+            echo "Aucun test PHPUnit trouvé - skipping"
+          fi
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phpunit-results
+          path: |
+            test-results.xml
+            coverage.xml
+
+  # ─────────────────────────────────────────────
+  # 4. TESTS E2E (Puppeteer / Node.js)
+  # ─────────────────────────────────────────────
+  e2e:
+    name: "E2E Tests (Puppeteer)"
+    runs-on: ubuntu-22.04
+    # Ce job tourne uniquement si des tests Puppeteer existent
+    # Adapter DRUPAL_BASE_URL selon votre environnement de staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install Node dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          else
+            echo "Pas de package.json - skipping npm install"
+          fi
+
+      - name: Check for Puppeteer tests
+        id: check_e2e
+        run: |
+          if find . -name "*.test.js" -path "*/puppeteer/*" -o -name "*.spec.js" | grep -q .; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Puppeteer E2E tests
+        if: steps.check_e2e.outputs.has_tests == 'true'
+        env:
+          DRUPAL_BASE_URL: ${{ secrets.DRUPAL_STAGING_URL }}
+          DRUPAL_USERNAME: ${{ secrets.DRUPAL_TEST_USER }}
+          DRUPAL_PASSWORD: ${{ secrets.DRUPAL_TEST_PASSWORD }}
+        run: |
+          npx puppeteer test --reporter=junit > e2e-results.xml || true
+
+      - name: Upload E2E results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-results
+          path: e2e-results.xml
+
+  # ─────────────────────────────────────────────
+  # 5. SÉCURITÉ - Audit dépendances
+  # ─────────────────────────────────────────────
+  security:
+    name: "Security Audit"
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer
+
+      - name: Local Security Checker (PHP)
+        run: |
+          composer global require enlightn/security-checker || true
+          if [ -f composer.lock ]; then
+            ~/.composer/vendor/bin/security-checker security:check composer.lock || true
+          else
+            echo "Pas de composer.lock - audit skipped"
+          fi
+
+      - name: Node.js Security Audit
+        run: |
+          if [ -f package-lock.json ]; then
+            npm audit --audit-level=high || true
+          else
+            echo "Pas de package-lock.json - audit skipped"
+          fi
+
+  # ─────────────────────────────────────────────
+  # 6. SONARCLOUD - Qualité de code
+  # ─────────────────────────────────────────────
+  sonarcloud:
+    name: "SonarCloud Analysis"
+    runs-on: ubuntu-22.04
+    needs: [phpcs, phpunit]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Nécessaire pour SonarCloud (historique complet)
+
+      - name: Download PHPCS reports
+        uses: actions/download-artifact@v4
+        with:
+          name: phpcs-reports
+        continue-on-error: true
+
+      - name: Download PHPUnit coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: phpunit-results
+        continue-on-error: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ─────────────────────────────────────────────
+  # 7. DÉPLOIEMENT (staging) - sur push main/develop
+  # ─────────────────────────────────────────────
+  deploy-staging:
+    name: "Deploy to Staging"
+    runs-on: ubuntu-22.04
+    needs: [phpcs, phpstan, security]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: ${{ secrets.DRUPAL_STAGING_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            echo "=== Déploiement modules GYS sur staging ==="
+
+            # Aller dans le dossier modules Drupal
+            cd ${{ secrets.DRUPAL_MODULES_PATH }}
+
+            # Pull derniers changements
+            git pull origin develop
+
+            # Copier les modules
+            cp -r modules/gestion_documentaire/ ./custom/
+            cp -r modules/entity_revision/ ./custom/
+
+            # Vider le cache Drupal
+            cd ${{ secrets.DRUPAL_ROOT }}
+            drush cr
+            drush updb -y
+
+            echo "=== Déploiement terminé ==="
+
+  deploy-production:
+    name: "Deploy to Production"
+    runs-on: ubuntu-22.04
+    needs: [phpcs, phpstan, phpunit, security, sonarcloud]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: ${{ secrets.DRUPAL_PROD_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH to Production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST_PROD }}
+          username: ${{ secrets.SSH_USER_PROD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
+          port: ${{ secrets.SSH_PORT_PROD || 22 }}
+          script: |
+            set -e
+            echo "=== Déploiement PRODUCTION modules GYS ==="
+
+            cd ${{ secrets.DRUPAL_MODULES_PATH_PROD }}
+            git pull origin main
+
+            cp -r modules/gestion_documentaire/ ./custom/
+            cp -r modules/entity_revision/ ./custom/
+
+            cd ${{ secrets.DRUPAL_ROOT_PROD }}
+            drush cr
+            drush updb -y
+
+            echo "=== Production mise à jour ==="

@@ -1,0 +1,118 @@
+
+
+<div class="gd-container">
+  <!-- EN-TÊTE -->
+  <div class="gd-header">
+    <h1 class="gd-title">📂 {{ type }}</h1>
+
+    <div class="gd-breadcrumb">
+      {% for item in fil_ariane %}
+        <a href="{{ item.path }}">{{ item.name }}</a>
+        {% if not loop.last %}
+          <span class="gd-breadcrumb-separator">/</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div id="searchModeIndicator" class="gd-search-mode">
+      <span class="gd-search-mode-icon">🔍</span>
+      <strong>{{ 'Recursive search'|t }}:</strong>
+      <span>{{ 'Searching in all subfolders'|t }}</span>
+    </div>
+  </div>
+
+  <!-- FILTRES -->
+  <div class="gd-filters">
+    <div class="gd-filters-grid">
+      <div class="gd-filter-item">
+        <label class="gd-filter-label" for="searchInput">🔍 {{ 'Search'|t }}</label>
+        <input type="text" id="searchInput" class="gd-filter-input" placeholder="{{ 'Field search'|t }}">
+      </div>
+
+      <div class="gd-filter-item">
+        <label class="gd-filter-label" for="authorSelect">👤 {{ 'Author'|t }}</label>
+        <select id="authorSelect" class="gd-filter-select">
+          <option value="" selected>{{ 'All author'|t }}</option>
+        </select>
+      </div>
+
+      <div class="gd-filter-item">
+        <label class="gd-filter-label" for="revisionSelect">✏️ {{ 'Last modification'|t }}</label>
+        <select id="revisionSelect" class="gd-filter-select">
+          <option value="" selected>{{ 'All modification'|t }}</option>
+        </select>
+      </div>
+
+      <div class="gd-filter-item">
+        <label class="gd-filter-label" for="createdInput">📅 {{ 'Created at'|t }}</label>
+        <input type="date" id="createdInput" class="gd-filter-input">
+      </div>
+
+      <div class="gd-filter-item">
+        <label class="gd-filter-label" for="changedInput">🕒 {{ 'Modified at'|t }}</label>
+        <input type="date" id="changedInput" class="gd-filter-input">
+      </div>
+    </div>
+
+    <!-- Barre extensions + bouton langues -->
+    <div class="gd-filter-row2">
+      <div id="gdExtBar" class="gd-ext-bar"></div>
+      <button id="gdLangBtn" class="gd-lang-btn" style="display:none;" title="{{ 'Filter by language'|t }}">
+        🌐 {{ 'Languages'|t }}
+      </button>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="gd-table-container">
+    <table class="gd-table" id="resultsTable">
+      <thead>
+        <tr>
+          <th>{{ 'Type'|t }}</th>
+          <th>{{ 'Version'|t }}</th>
+          <th>{{ 'Name'|t }}</th>
+          <th>{{ 'Category'|t }}</th>
+          <th>{{ 'Language'|t }}</th>
+          <th>{{ 'Reference'|t }}</th>
+          <th>{{ 'Size'|t }}</th>
+          <th>{{ 'Modified by'|t }}</th>
+          <th>{{ 'Author'|t }}</th>
+          <th>{{ 'Created at'|t }}</th>
+          <th>{{ 'Modified at'|t }}</th>
+          <th>{{ 'Actions'|t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Chargement dynamique via JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGINATION -->
+  <div class="gd-pagination">
+    <button id="prevPage" class="gd-pagination-btn">⬅ {{ 'Previous'|t }}</button>
+    <span id="pageInfo" class="gd-pagination-info">Page 1</span>
+    <button id="nextPage" class="gd-pagination-btn">{{ 'Next'|t }} ➡</button>
+  </div>
+
+  <!-- BOUTONS D'AJOUT -->
+  {% if parent_perms.can_edit or parent_perms.can_edit_role %}
+  <div class="gd-add-buttons">
+    <a href="{{ path('gestion_documentaire.document.add', {'nom': type}) }}" class="gd-btn-drupal">
+      📄 {{ 'Add document'|t }}
+    </a>
+    <a href="{{ path('gestion_documentaire.test_upload') }}" class="gd-btn-drupal">
+      📄 {{ 'Add multiple document'|t }}
+    </a>
+   
+  {% endif %}
+
+
+{% if is_admin %}
+   <a href="{{ path('gestion_documentaire.dossier.add', {'nom': type}) }}" class="gd-btn-drupal">
+      📁 {{ 'Add folder'|t }}
+    </a>
+  {% endif %}
+
+  </div>
+</div>
