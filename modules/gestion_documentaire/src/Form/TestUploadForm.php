@@ -762,7 +762,9 @@ if (empty($perms['can_edit'])) {
               '@name' => $old_media->getName(),
               '@id'   => $old_media->id(),
             ]));
-          } catch (\Throwable $e2) {}
+          } catch (\Throwable $e2) {
+            \Drupal::logger('gys')->warning('Old media deletion failed: @msg', ['@msg' => $e2->getMessage()]);
+          }
         }
       } else {
         // Récupérer le tid taxonomique pour le log

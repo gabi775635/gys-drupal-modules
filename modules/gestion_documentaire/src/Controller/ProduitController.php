@@ -52,7 +52,6 @@ class ProduitController extends ControllerBase {
     $query->orderBy('revision_id', 'DESC');
 
     $results = $query->execute()->fetchAll();
-    // var_dump($results);
     $data = [];
 
     foreach ($results as $row) {
@@ -167,7 +166,6 @@ class ProduitController extends ControllerBase {
     $type_query->distinct();
 
     $type_results = $type_query->execute()->fetchCol();
-    // var_dump($type_results);
     $types_found = [];
     foreach ($type_results as $t) {
       switch (strtolower($t)) {

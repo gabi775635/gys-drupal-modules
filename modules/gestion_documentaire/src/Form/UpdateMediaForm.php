@@ -144,7 +144,6 @@ class UpdateMediaForm extends FormBase
 
     $account = \Drupal::currentUser();
     $permissions = AccessMediaController::getResourcePermissions($account, $id_char_version);
-    // var_dump($permissions);
     $can_edit = $permissions['can_edit'];
     $can_edit_role = $permissions['can_edit_role'];
     $can_delete = $permissions['can_delete'];
@@ -373,9 +372,6 @@ class UpdateMediaForm extends FormBase
               ", [
           ':group_id'    => $ressource['media_group_id']
         ])->fetchAll(\PDO::FETCH_ASSOC);
-
-        // var_dump($rows);
-
         // Wrapper rafraîchi par AJAX
         $form['version_wrapper'] = [
           '#type' => 'container',

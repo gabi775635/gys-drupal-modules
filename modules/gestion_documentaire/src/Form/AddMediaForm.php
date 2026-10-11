@@ -629,7 +629,6 @@ class AddMediaForm extends FormBase
   {
 
     // \Drupal::logger('gestion_documentaire')->notice('ADD VALUES dest: <pre>@v</pre>', [
-    //   '@v' => print_r($form_state->getValues(), TRUE),
     // ]);
     Database::setActiveConnection('drupal9');
     $connection = Database::getConnection();

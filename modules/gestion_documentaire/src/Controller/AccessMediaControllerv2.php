@@ -58,7 +58,6 @@ class AccessMediaControllerv2 extends ControllerBase
 
   public static function resolveIdCharVersion(?string $id_char_version): ?string
   {
-    // $logger = \Drupal::logger('gestion_documentaire');
 
     // $logger->debug('[resolveIdCharVersion] Entree: @input', ['@input' => $id_char_version]);
 
@@ -298,7 +297,6 @@ private static function checkAccess(
   string $action
 ): AccessResult {
 
-  // $logger = \Drupal::logger('gestion_documentaire');
   $uid    = $account->id();
   $roles  = implode(', ', $account->getRoles());
 
@@ -489,7 +487,6 @@ private static function hasDescendantWithView(int $taxonomy_id, array $user_role
 
   public static function get_permission($id_char_version, $user_roles, $connection)
   {
-    // $logger = \Drupal::logger('gestion_documentaire');
 
     // $logger->debug('[get_permission] Debut: id_char_version=@id, roles=[@roles]', ['@id'    => $id_char_version,'@roles' => implode(', ', $user_roles),]);
 
@@ -559,7 +556,6 @@ private static function hasDescendantWithView(int $taxonomy_id, array $user_role
 
   public static function getResourcePermissions(AccountInterface $account, $id_char_version)
   {
-    // $logger = \Drupal::logger('gestion_documentaire');
 
     // $logger->debug('[getResourcePermissions] Debut: uid=@uid, id_char_version=@id', ['@uid' => $account->id(),'@id'  => $id_char_version ?? 'NULL',]);
 
