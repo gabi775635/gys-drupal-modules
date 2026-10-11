@@ -328,7 +328,7 @@ class AddMediaForm extends FormBase
       '#type' => 'checkbox',
       '#title' => $this->t('Generate thumbnail'),
       '#description' => $this->t('If check, thumbnail will be regenerated.'),
-      '#default_value' => $has_thumbnail ? 1 : 0,
+      '#default_value' => 0,
       '#weight' => 1,
     ];
 

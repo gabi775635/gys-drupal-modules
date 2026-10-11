@@ -36,7 +36,7 @@ class UpdateMediaForm extends FormBase
 
   public function buildForm(array $form, FormStateInterface $form_state, $id_char_version = NULL)
   {
-    $id_char_version = $id_char_version;
+    // $id_char_version is already set via the parameter.
 
 
     if (!$id_char_version) {

@@ -160,9 +160,11 @@ class StatsController extends ControllerBase
     foreach ($modified_stats as &$row) {
       $row['percent'] = $total_period > 0 ? round($row['count'] / $total_period * 100, 1) : 0;
     }
+    unset($row);
     foreach ($inserted_stats as &$row) {
       $row['percent'] = $total_period > 0 ? round($row['count'] / $total_period * 100, 1) : 0;
     }
+    unset($row);
 
     [$lang_added_total, $lang_removed_total] = $this->computeLangDiffBulk(
       $connection, $start_ts, $end_ts, $type_filter

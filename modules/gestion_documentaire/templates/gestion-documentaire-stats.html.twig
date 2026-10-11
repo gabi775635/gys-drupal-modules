@@ -140,8 +140,8 @@
     <div class="gd-filter-form" id="statsFilterForm">
 
       <div class="gd-filter-group">
-        <label>{{ 'Quick period'|t }}</label>
-        <div class="gd-quick-picks" id="quickPicks">
+        <label id="quickPicksLabel">{{ 'Quick period'|t }}</label>
+        <div class="gd-quick-picks" id="quickPicks" aria-labelledby="quickPicksLabel" role="group">
           <button type="button" class="gd-qp" data-v="today">{{ "Today"|t }}</button>
           <button type="button" class="gd-qp" data-v="yesterday">{{ "Yesterday"|t }}</button>
           <button type="button" class="gd-qp" data-v="last_7_days">{{ "7 days"|t }}</button>
@@ -287,8 +287,9 @@
     <div class="gd-table-toolbar">
       <div class="gd-toolbar-left">
         <input type="text" id="topDocsSearch" class="gd-search-input"
+               aria-label="{{ 'Search a document'|t }}"
                placeholder="{{ 'Search a document...'|t }}">
-        <select id="topDocsPerPage" class="gd-per-page-select">
+        <select id="topDocsPerPage" class="gd-per-page-select" aria-label="{{ 'Results per page'|t }}">
           <option value="10">10 / {{ 'page'|t }}</option>
           <option value="20" selected>20 / {{ 'page'|t }}</option>
           <option value="50">50 / {{ 'page'|t }}</option>
@@ -327,8 +328,9 @@
     <div class="gd-table-toolbar">
       <div class="gd-toolbar-left">
         <input type="text" id="topUsersSearch" class="gd-search-input"
+               aria-label="{{ 'Search a user'|t }}"
                placeholder="{{ 'Search a user (tiers ID)...'|t }}">
-        <select id="topUsersPerPage" class="gd-per-page-select">
+        <select id="topUsersPerPage" class="gd-per-page-select" aria-label="{{ 'Results per page'|t }}">
           <option value="10">10 / {{ 'page'|t }}</option>
           <option value="20" selected>20 / {{ 'page'|t }}</option>
           <option value="50">50 / {{ 'page'|t }}</option>
@@ -393,19 +395,20 @@
     <div class="gd-table-toolbar">
       <div class="gd-toolbar-left">
         <input type="text" id="errorsSearch" class="gd-search-input"
+               aria-label="{{ 'Search by message, reference, tiers, document'|t }}"
                placeholder="{{ 'Search by message, reference, tiers, document...'|t }}">
-        <select id="errorsStatusFilter" class="gd-filter-select-sm">
+        <select id="errorsStatusFilter" class="gd-filter-select-sm" aria-label="{{ 'Filter by status'|t }}">
           <option value="">{{ 'All statuses'|t }}</option>
           <option value="success">{{ 'Success'|t }}</option>
           <option value="error">{{ 'Error'|t }}</option>
         </select>
-        <select id="errorsActionFilter" class="gd-filter-select-sm">
+        <select id="errorsActionFilter" class="gd-filter-select-sm" aria-label="{{ 'Filter by action'|t }}">
           <option value="">{{ 'All actions'|t }}</option>
           <option value="view">view</option>
           <option value="download">download</option>
           <option value="error">error</option>
         </select>
-        <select id="errorsPerPage" class="gd-per-page-select">
+        <select id="errorsPerPage" class="gd-per-page-select" aria-label="{{ 'Results per page'|t }}">
           <option value="10">10 / {{ 'page'|t }}</option>
           <option value="20" selected>20 / {{ 'page'|t }}</option>
           <option value="50">50 / {{ 'page'|t }}</option>
@@ -458,14 +461,15 @@
     <div class="gd-table-toolbar">
       <div class="gd-toolbar-left">
         <input type="text" id="modifiedSearchInput" class="gd-search-input"
+               aria-label="{{ 'Search by reference or document name'|t }}"
                placeholder="{{ 'Search by reference or document name...'|t }}">
-        <select id="modifiedTypeFilter" class="gd-filter-select-sm">
+        <select id="modifiedTypeFilter" class="gd-filter-select-sm" aria-label="{{ 'Filter by document type'|t }}">
           <option value="">{{ 'All types'|t }}</option>
           {% for type in available_types %}
             <option value="{{ type.type }}">{{ type.type }}</option>
           {% endfor %}
         </select>
-        <select id="modifiedPerPage" class="gd-per-page-select">
+        <select id="modifiedPerPage" class="gd-per-page-select" aria-label="{{ 'Results per page'|t }}">
           <option value="10">10 / {{ 'page'|t }}</option>
           <option value="20" selected>20 / {{ 'page'|t }}</option>
           <option value="50">50 / {{ 'page'|t }}</option>
