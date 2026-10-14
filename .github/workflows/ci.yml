@@ -7,6 +7,25 @@ on:
     branches: [ main ]
 
 jobs:
+  phpunit:
+    name: "PHPUnit"
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: composer
+          extensions: mbstring, xml
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit --testdox
+
   phpcs:
     name: "PHPCS Drupal"
     runs-on: ubuntu-22.04
@@ -49,7 +68,7 @@ jobs:
   sonarcloud:
     name: "SonarCloud"
     runs-on: ubuntu-22.04
-    needs: phpcs
+    needs: [phpunit, phpcs]
     if: always()
     steps:
       - uses: actions/checkout@v4
