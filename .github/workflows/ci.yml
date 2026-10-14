@@ -100,10 +100,62 @@ jobs:
           name: phpcs-report
           path: phpcs-report.xml
 
+  drupal-integration:
+    name: "Drupal integration"
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+        with:
+          php-version: "8.1"
+          tools: composer, drush
+          extensions: mbstring, xml, pdo_sqlite, gd
+
+      # Installe un Drupal 10 minimal dans un dossier séparé
+      - name: Create Drupal project
+        run: |
+          composer create-project drupal/recommended-project:^10 drupal-test \
+            --no-interaction --no-install --prefer-dist
+          cd drupal-test
+          composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer config --no-plugins allow-plugins.composer/installers true
+          composer config --no-plugins allow-plugins.drupal/core-composer-scaffold true
+          composer config --no-plugins allow-plugins.drupal/core-project-message true
+          composer require drush/drush --no-interaction --prefer-dist
+          composer install --no-interaction --prefer-dist
+
+      # Copie les modules custom dans l'arborescence Drupal
+      - name: Install custom modules
+        run: |
+          cp -r modules/gestion_documentaire drupal-test/web/modules/custom/
+          cp -r modules/entity_revision      drupal-test/web/modules/custom/
+
+      # Installe Drupal avec SQLite (pas besoin de MySQL)
+      - name: Install Drupal (SQLite)
+        working-directory: drupal-test
+        run: |
+          vendor/bin/drush site:install minimal \
+            --db-url="sqlite://sites/default/files/.sqlite" \
+            --site-name="GYS CI" \
+            --account-name=admin \
+            --account-pass=admin \
+            --no-interaction \
+            --yes
+
+      # Active les modules et vérifie qu'il n'y a pas d'erreur
+      - name: Enable custom modules
+        working-directory: drupal-test
+        run: |
+          vendor/bin/drush en gestion_documentaire entity_revision --yes
+          vendor/bin/drush status
+          vendor/bin/drush watchdog:show --count=20 --severity=Error || true
+
   sonarcloud:
     name: "SonarCloud"
     runs-on: ubuntu-22.04
-    needs: [phpunit, benchmark, phpcs]
+    needs: [phpunit, benchmark, phpcs, drupal-integration]
     if: always()
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
