@@ -26,6 +26,41 @@ jobs:
       - name: Run PHPUnit
         run: vendor/bin/phpunit --testdox
 
+  benchmark:
+    name: "Performance benchmarks"
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: mbstring
+
+      # Télécharge la baseline de la branche principale (si elle existe)
+      - name: Download baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: perf-baseline
+          path: tests/perf/
+        continue-on-error: true
+
+      - name: Run benchmarks
+        run: php -d error_reporting=E_ERROR tests/benchmark.php --compare
+
+      - name: Save baseline (main branch only)
+        if: github.ref == 'refs/heads/main'
+        run: php -d error_reporting=E_ERROR tests/benchmark.php --baseline
+
+      - name: Upload baseline artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-baseline
+          path: tests/perf/baseline.json
+          retention-days: 90
+
   phpcs:
     name: "PHPCS Drupal"
     runs-on: ubuntu-22.04
@@ -68,7 +103,7 @@ jobs:
   sonarcloud:
     name: "SonarCloud"
     runs-on: ubuntu-22.04
-    needs: [phpunit, phpcs]
+    needs: [phpunit, benchmark, phpcs]
     if: always()
     steps:
       - uses: actions/checkout@v4

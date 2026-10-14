@@ -1,0 +1,104 @@
+{
+    "recorded_at": "2026-10-14 08:15:55",
+    "results": [
+        {
+            "name": "parseSearchParams",
+            "n": 5000,
+            "total_ms": 8.413,
+            "avg_ms": 0.001683,
+            "threshold": 0.05,
+            "mem_kb": 0,
+            "ok": true
+        },
+        {
+            "name": "langTokens",
+            "n": 10000,
+            "total_ms": 6.541,
+            "avg_ms": 0.000654,
+            "threshold": 0.02,
+            "mem_kb": 0,
+            "ok": true
+        },
+        {
+            "name": "langScore",
+            "n": 10000,
+            "total_ms": 0.597,
+            "avg_ms": 6.0e-5,
+            "threshold": 0.01,
+            "mem_kb": 0,
+            "ok": true
+        },
+        {
+            "name": "langRank (multi-value)",
+            "n": 5000,
+            "total_ms": 3.529,
+            "avg_ms": 0.000706,
+            "threshold": 0.02,
+            "mem_kb": 0,
+            "ok": true
+        },
+        {
+            "name": "compareLangValues",
+            "n": 5000,
+            "total_ms": 5.084,
+            "avg_ms": 0.001017,
+            "threshold": 0.05,
+            "mem_kb": 0,
+            "ok": true
+        },
+        {
+            "name": "buildMediaWhereClause",
+            "n": 5000,
+            "total_ms": 2.051,
+            "avg_ms": 0.00041,
+            "threshold": 0.05,
+            "mem_kb": 0,
+            "ok": true
+        },
+        {
+            "name": "buildMediaOrderBy",
+            "n": 5000,
+            "total_ms": 15.112,
+            "avg_ms": 0.003022,
+            "threshold": 0.05,
+            "mem_kb": 0,
+            "ok": true
+        },
+        {
+            "name": "buildNodesFromTree (50 rows)",
+            "n": 500,
+            "total_ms": 10.738,
+            "avg_ms": 0.021476,
+            "threshold": 2,
+            "mem_kb": 0,
+            "ok": true
+        },
+        {
+            "name": "mergeAndSort (100+100)",
+            "n": 500,
+            "total_ms": 321.444,
+            "avg_ms": 0.642888,
+            "threshold": 5,
+            "mem_kb": 0,
+            "ok": true
+        },
+        {
+            "name": "propagateDownward (50 nodes)",
+            "n": 1000,
+            "total_ms": 7.265,
+            "avg_ms": 0.007265,
+            "threshold": 1,
+            "mem_kb": 0,
+            "ok": true
+        },
+        {
+            "name": "propagateVisibleViaChild (50 nodes)",
+            "n": 1000,
+            "total_ms": 4.644,
+            "avg_ms": 0.004644,
+            "threshold": 1,
+            "mem_kb": 0,
+            "ok": true
+        }
+    ]
+}
