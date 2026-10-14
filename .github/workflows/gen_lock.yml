@@ -6,6 +6,8 @@ on:
 jobs:
   generate:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
@@ -18,8 +20,17 @@ jobs:
       - name: Generate composer.lock
         run: composer install --no-interaction --prefer-dist
 
-      - name: Upload composer.lock
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: composer-lock
-          path: composer.lock
+      - name: Commit composer.lock
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add composer.lock
+          git diff --cached --quiet || git commit -m "chore: add composer.lock to fix SonarCloud security warning
+
+Dependency versions are now pinned via composer.lock.
+Fixes SonarCloud Medium issue: 'Dependency versions are not
+predictable if the lock file (composer.lock) is missing.'
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015rTBw6csiCRo4f8Awb4dWe"
+          git push
