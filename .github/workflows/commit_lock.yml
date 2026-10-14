@@ -1,4 +1,4 @@
-name: Generate composer.lock
+name: Commit composer lock
 
 on:
   workflow_dispatch:
@@ -26,10 +26,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add composer.lock
           git diff --cached --quiet || git commit -m "chore: add composer.lock to fix SonarCloud security warning
-
-Dependency versions are now pinned via composer.lock.
-Fixes SonarCloud Medium issue: 'Dependency versions are not
-predictable if the lock file (composer.lock) is missing.'
 
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_015rTBw6csiCRo4f8Awb4dWe"
